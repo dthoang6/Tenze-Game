@@ -1,0 +1,40 @@
+1. Starting to build our complex app: 6h
+- Begin
+- Current Year
+- What is a Router
+- What is a Controller
+- What is a Model
+- Adding validation to our Model
+- Quick Misc clean up
+- Connecting to database in a reusable fashion
+- Best practice timeout: environment variables
+- Letting users log in
+- what is a promise
+- Running multiple promise
+- hashing user passwords
+- how can we indentify or trust a request:
+- Understanding sessions
+- let users log out
+- adding flash messages
+- user registration improvement
+- adding user profile photos
+-------------------
+- Begin
+- Current Year
+- What is a Router
+- What is a Controller
+- What is a Model
+- Adding validation to our Model
+- Quick Misc clean up
+- Connecting to database in a reusable fashion
+- Best practice timeout: environment variables
+- Letting users log in
+- what is a promise
+- Running multiple promise
+- hashing user passwords
+- how can we indentify or trust a request:
+- Understanding sessions
+- let users log out
+- adding flash messages
+- user registration improvement
+- adding user profile photos
