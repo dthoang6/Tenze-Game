@@ -16,4 +16,8 @@ app.use("/", router); //a=which url to use this router for, b = the router that 
   res.render("home-guest");
 }); */
 
-app.listen(3000);
+/* app.listen(3000);
+ */
+
+module.exports = app;
+//we are creating an express application under this variable app. But instead of telling it to actually start listening, we're just exporting it from this file.

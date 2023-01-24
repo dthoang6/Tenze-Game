@@ -1,3 +1,6 @@
+const usersCollection = require("../db").collection("users");
+
+const validator = require("validator");
 //Using constructor function to create a reuseable blueprint that we can be used to create user objects.
 //We are going to want to be able to leverage this function from within our userController file.
 
@@ -10,21 +13,62 @@ let User = function (data) {
   this.errors = [];
 };
 //using prototype to create register method, JS will not need to create a copy of this method once for each new object. Instead, any object created using this constructor function will simply have access to this method which is much more efficient.
+User.prototype.cleanUp = function () {
+  if (typeof this.data.username != "string") {
+    this.data.username = "";
+  }
+  if (typeof this.data.email != "string") {
+    this.data.email = "";
+  }
+  if (typeof this.data.password != "string") {
+    this.data.password = "";
+  }
+
+  //get rid of any bogus properties, purifying our data property
+  this.data = {
+    username: this.data.username.trim().toLowerCase(), //the trim method to trim empty white space.
+    email: this.data.email.trim().toLowerCase(),
+    password: this.data.password
+  };
+};
+
 User.prototype.validate = function () {
   if (this.data.username == "") {
     this.errors.push("You must provide a username.");
   }
-  if (this.data.email == "") {
+  //if the user type something and if it is alphanumeric, we would want to check for the opposite.
+  if (this.data.username != "" && !validator.isAlphanumeric(this.data.username)) {
+    this.errors.push("username can only contain letters and numbers.");
+  }
+  //using a validator package to check email: using ! to check for the opposite because we only want to push this error if what the user typed is not a valid email.
+  if (!validator.isEmail(this.data.email)) {
     this.errors.push("You must provide a valid email address.");
   }
   if (this.data.password == "") {
     this.errors.push("You must provide a password.");
   }
+  if (this.data.password.length > 0 && this.data.password.length < 12) {
+    this.errors.push("Password has to be more than 12 characters.");
+  }
+  if (this.data.password.length > 100) {
+    this.errors.push("Password has to be less than 100 characters.");
+  }
+  if (this.data.username.length > 0 && this.data.username.length < 3) {
+    this.errors.push("Username has to be more than 3 characters.");
+  }
+  if (this.data.username.length > 30) {
+    this.errors.push("Username has to be less than 30 characters.");
+  }
 };
 User.prototype.register = function () {
+  this.cleanUp(); //not allowed to send anything for these value other than a simple string of text, no object, no array.
   //step 1: we would first want to validate user name, email, password value. we want to enforce all of our business login.
   this.validate(); //like we're saying user.validate() because this keyword point toward the user object calling register method in userController. It means this keyword points toward whatever is calling or executing the current function.
 
   //Step 2: only if there are no validation errors, then save a user data into a database.
+  //if the errors array is empty
+  if (!this.errors.length) {
+    usersCollection.insertOne(this.data);
+  }
 };
 module.exports = User;

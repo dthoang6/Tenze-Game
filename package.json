@@ -4,7 +4,7 @@
   "description": "Build Complex App as Fullstack JavaScript Developer",
   "main": "app.js",
   "scripts": {
-    "watch": "nodemon app.js",
+    "watch": "nodemon db",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

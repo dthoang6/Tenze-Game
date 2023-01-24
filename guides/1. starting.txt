@@ -75,16 +75,30 @@ What is a Model?
 -----------------------------
 - 6. Adding validation to our Model
 
+ //step 1: we would first want to validate user name, email, password value. we want to enforce all of our business login.
+
+//Step 2: only if there are no validation errors, then save a user data into a database.
 
 -----------------------------
 
-- Quick Misc clean up
+- 7. Quick Misc clean up
+.Setting safety checks up:
+-we want to make sure that the user does not try to send a value that is not a string of text for username, email, password.
+-do not accept array or object
+-do not accept any extra properties or fields that visitor try to send over.
 -----------------------------
 
-- Connecting to database in a reusable fashion
+- 8.Connecting to database in a reusable fashion
+
+.our goal is to connect our app to this new database Complex App, so that when someone submits the user registration form with valid values, we would expect to see a new user document appear with users collection.
+.instead of connect to the database once in a separate file  in each of our model file, we create a file and leverage it in each model file using module.export and require.
 -----------------------------
 
-- Best practice timeout: environment variables
+- 9. Best practice timeout: environment variables
+
+.basic security with connection string, do not hard code
+.create connection string with .env
+.pull in environment variable with package dotenv
 -----------------------------
 
 - Letting users log in
