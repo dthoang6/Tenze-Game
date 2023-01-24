@@ -9,5 +9,6 @@ const userController = require("./controllers/userController");
 //same like app.get() app.post(). Instead of working with express app, express router.
 //it would be better if our router did not have to contain these actual functions and instead could just call said functions that live in a separate file. The router should not store all the logic, function.
 router.get("/", userController.home);
+router.post("/register", userController.register);
 
 module.exports = router; //this is what we make available to any file that require in this file.

@@ -3,7 +3,7 @@
 - Current Year
 - What is a Router
 - What is a Controller
-- What is a Model
+- What is a Model - MVC Pattern
 - Adding validation to our Model
 - Quick Misc clean up
 - Connecting to database in a reusable fashion
@@ -19,22 +19,99 @@
 - user registration improvement
 - adding user profile photos
 -------------------
-- Begin
-- Current Year
-- What is a Router
-- What is a Controller
-- What is a Model
-- Adding validation to our Model
+- 1. Begin:
+-------------------
+. install package.json for keep track app recipe: npm init -y.
+. let vs const
+. set up express server
+. html template: breaking this file to separated file with their own responsibility into views folder.
+    . views/home-guest.ejs
+
+. main.css file: public/main.css
+. how to make our app js file even more organized.
+    . As your application grows in complexity, a lot of routes to be listening for. How to set up a router?
+----------------------------
+- 2. Current Year: <%= new Date().getFullYear() %>
+- 3.1 What is a Router
+    . A router has the responsibility of listing out the urls or routes that you want to listen and then say what should happen for each of those routes.
+    . Build a router for our app: it is the router job to list out all of the urls or routes that we are on the lookout for.
+- 3.2 How to let one js file communicate with another or let one js file share it code with another.
+    . we can use require with packages name that we did not create.
+    . we can also use require to pull in js files with the file path that we create.
+    . The require function in node does 2 things: executes said file, and returns whatever that file exports.
+-----------------------------
+- 4. What is a Controller
+    . The controller will allow our router file to stay cleaner itself by keeping the function in a separated file.
+
+-----------------------------
+
+- 5. What is a MVC pattern?
+  . MVC pattern: Model View Controller pattern to keep your code organized into these distinct components to avoid messy code that becomes unmanageable.
+
+  .MODEL: where we would include all of our business logic or all of the rules that we want to enforce or model on our data.
+      .a user's name must be unique
+      .password must be at least twelve characters long.
+      .Essentially the model is where we model our data.
+
+  .VIEW is self explanatory in the context of a Web app. The view is our HTML template that the user will see in their web browser or views file folder.
+
+  .CONTROLLER: It's the responsibility of the controller to accept input. In this case, the input is network requests to our different routes and then the controller needs to convert that input into appropriate commands for our models and views.
+  .We could say the controller is the middleman.
+  .Depending on the incoming request, the controller will call the appropriate business logic and rules that we want to enforce on the data.
+  .Then once that's done, the controller will call the appropriate view and pass it any relevant dynamic data from the model.
+-----------------------------
+What is a Model?
+  .Before we go ahead and create a user model file that says what a user should be.
+  .First, make sure our userController can access this form data when gets submitted. tell express to accept 2 common ways of submitting data, test it using console.log(req.body)
+
+  .From a programming or JS perspective, what would a model be?
+  .we want to create a reusable blueprint for an object by constructor function.
+  .We can set up a constructor function that spells out all of the properties and methods that a user object should have.
+  .We can keep that constructor function in separate file.
+  .We can simply to require that model file and use it as a blueprint to create a new user object specific to the current request and user submitted data.
+
+  .All of the logic that checks the incoming data for validation errors and all of the code that makes up the blueprint of what a user should be that will live in a separate user model file.
+  - How to use js to create a new object using the user object?
+-----------------------------
+- 6. Adding validation to our Model
+
+
+-----------------------------
+
 - Quick Misc clean up
+-----------------------------
+
 - Connecting to database in a reusable fashion
+-----------------------------
+
 - Best practice timeout: environment variables
+-----------------------------
+
 - Letting users log in
+-----------------------------
+
 - what is a promise
+-----------------------------
+
 - Running multiple promise
+-----------------------------
+
 - hashing user passwords
+-----------------------------
+
 - how can we indentify or trust a request:
+-----------------------------
+
 - Understanding sessions
+-----------------------------
+
 - let users log out
+-----------------------------
+
 - adding flash messages
+-----------------------------
+
 - user registration improvement
+-----------------------------
+
 - adding user profile photos
