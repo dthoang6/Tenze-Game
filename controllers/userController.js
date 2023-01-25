@@ -9,13 +9,23 @@ exports.login = function (req, res) {
   //we're not exactly sure when to send back our response. We don't know how long this login method is going to take because it's working with the database.
   //the question becomes within our controller here, how can we wait until login has had a chance to do its job and then send back our response to the browser?
   //traditional approach vs modern best practice approach
-  //traditional approach: callback function
+  /* //traditional approach: callback function
   user.login(function (result) {
     //when we define the login function, we are waiting until the perfect moment to call this function.
     //In other words, we know that this function is not going to run until the appropriate moment once the database action has had a chance to complete.
     //result is what we are passing in when callback.
     res.send(result);
-  });
+  }); */
+  //using promise
+  //the login method will return a promise object, how to use it?
+  user
+    .login()
+    .then(function (result) {
+      res.send(result);
+    })
+    .catch(function (e) {
+      res.send(e);
+    });
 };
 
 exports.logout = function () {};

@@ -8,12 +8,14 @@
 - Quick Misc clean up
 - Connecting to database in a reusable fashion
 - Best practice timeout: environment variables
+
 - Letting users log in
 - what is a promise
 - Running multiple promise
 - hashing user passwords
 - how can we indentify or trust a request:
 - Understanding sessions
+
 - let users log out
 - adding flash messages
 - user registration improvement
@@ -91,7 +93,8 @@ What is a Model?
 - 8.Connecting to database in a reusable fashion: db.js
 
 .our goal is to connect our app to this new database Complex App, so that when someone submits the user registration form with valid values, we would expect to see a new user document appear with users collection.
-.instead of connect to the database once in a separate file  in each of our model file, we create a file and leverage it in each model file using module.export and require.
+
+.instead of connect to the database once in a separate file in each of our model file, we create a file and leverage it in each model file using module.export and require.
 -----------------------------
 
 - 9. Best practice timeout: environment variables
@@ -105,11 +108,11 @@ dotenv.config(); //the package will load in all of the values that we defined wi
 
 .keep any secret API keys that you're using to connect to third party apps.
 
-.Why: security: password would not leaked and it is easy to for your application to change and adjust depending on the current environment by only changeing individual environment variable instead of change your code.. 
+.Why: security: password would not leaked and it is easy to for your application to change and adjust depending on the current environment by only changing individual environment variable instead of change your code.. 
 
 -----------------------------
 
-- 10. Letting users log in: 
+- 10. Letting users log in: 01/24/2023
 
 .let user submit login form.
 .determine if the username and password that they typed in is correct.
@@ -119,13 +122,106 @@ dotenv.config(); //the package will load in all of the values that we defined wi
 -User.js
 -----------------------------
 
-- what is a promise
+- 11. what is a promise? 01/25/23
+
+.promise is a modern practice to replace the callback practice to perform asynchronous operations or operation that are going to take sometime to complete. And then call resolve or reject.
+.User.prototype.login = function() {
+  return new Promise ((resolve, reject) => {
+    //asynchronous operations: CRUD
+  })
+}
+.how to leverage the return promise object when calling login method.
+
+let user = new User(req.body)
+user.login().then().catch()
+
+.If the promise was successful saying what you want to do within the then parentheses and saying what you want to do within the catch parentheses if the promise failed.
+
+.Why are promises so great? benefits of using promise
+
+  -simulate the nature of asynchronous actions
+  -when we do something like talk to a database or send out a request to another server, we don't know how long those actions are going to take.
+  
+  -asynchronous function like setTimeOut(function, 800) is going to take time to complete.
+
+  -how we coordinate these four events so that each one waits until the previous one has actually completed.
+  -when we need to coordinate multiple asynchronous events?
+
+  -method 1: callback: if we can avoid this nesting, we should because in the long run our code will be much more manageable and easy to maintain.
+
+  eatBreakfast(function() {
+    eatLunch(function() {
+      eatDinner(function() {
+        eatDessert()
+      })
+    })
+  })
+  -method 2.1: promise: 
+    .chaining with no nesting, error handling, each action is just returning another promise and we can chain them together using then() and at the end with catch() for error handling.
+
+    .we don't need to micromanage or babysit each of our actions listening for errors like we would with callbacks. We just need one single catch and if any of our promises reject instead of resolve, the catch will take care of it.
+
+  function eatBreakfast() {
+    return new Promise ((resolve, reject) => {
+        //asynchronous operations: CRUD
+    })
+  }
+
+eatBreakfast().then(function() {
+  return eatLunch()
+}).then(function() {
+  return eatDinner()
+}).then(function() {
+  return eatDesert()
+}).catch(function(e) {
+  console.log(e)
+}))
+
+-can make above code more easier to ready by using arrow function
+
+eatBreakfast()
+.then(() => eatLunch())
+.then(() => eatDinner())
+.then(() => eatDesert())
+.catch(function(e) {
+  console.log(e)
+})
+
+method 2.2: alternative way of working with promises
+- instead of using then().catch()
+- we use async await, try catch for error handling
+
+- with promises we can include the word await before them and then js will indeed let this asynchronous operational promise resolve how long that takes before moving on to the next operation.
+- but you can only use await if you are within an asynchronous function.
+
+//the code below is really clean and this is a prefer way of using or leveraging promise.
+
+async function run() {
+  try {
+    await eatBreakfast()
+    await eatLunch()
+    await eatDinner()
+    await eatDesert()
+  } catch(err) {
+    console.log(err)
+  }
+}
+run()
+
+- however, we are not going to rewrite the area where we leverage our promise.
+- going forward we are going to use async and await.
+
+- promise is an object that represents the event completion of an asynchronous operation.
+
 -----------------------------
 
-- Running multiple promise
+12. Running multiple promise
 -----------------------------
 
-- hashing user passwords
+13. hashing user passwords
+
+- not storing user passwords in plain text in our database but instead hashing the user's pass so that if our database was ever compromised or leaked, we wouldn't reveal user pass to malicious user or attacker.
+
 -----------------------------
 
 - how can we indentify or trust a request:

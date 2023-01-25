@@ -61,21 +61,38 @@ User.prototype.validate = function () {
   }
 };
 
-User.prototype.login = function (callback) {
-  this.cleanUp();
-  //lookup data from database using findOne method and we are trying to find a document where the username property is matching with whatever the user just type in login form.
-  //we will provide a function that findOne is going to call once the read operation has had a chance to complete
-  //when the findOne method calls our callback function, because it's not an object directly calling our function. JS is actually going to consider the global object to be what's calling our function. It's going to set this.data.password in traditional anonymous function to our lowercase user object that we created from our blueprint not this User object.
+User.prototype.login = function () {
+  //when we calling this login function from within our userController, this function will return a promise object. We want to pass into it a function.
+  return new Promise((resolve, reject) => {
+    //within the body of this function, we can perform asynchronous operations or operations that are going to take sometime to complete.
+    //and then when whenever those actions are complete, we just call resolve or reject.
+    //We let js know that this promise has either completed in the case of resolve or fail in the case of reject.
+    this.cleanUp();
+    //lookup data from database using findOne method and we are trying to find a document where the username property is matching with whatever the user just type in login form.
+    //we will provide a function that findOne is going to call once the read operation has had a chance to complete
+    //when the findOne method calls our callback function, because it's not an object directly calling our function. JS is actually going to consider the global object to be what's calling our function. It's going to set this.data.password in traditional anonymous function to our lowercase user object that we created from our blueprint not this User object.
 
-  //Instead of providing a traditional anonymous function, we provide an arrow function here. It will not manipulate or change the this keyword.
-  usersCollection.findOne({ username: this.data.username }, (err, attemptedUser) => {
-    //if mongo db does find a user that matches our condition,, it's going to pass that document as this parameter attemptedUser into our function.
-    //let see if the attemptedUser is exist at all and password is true
-    if (attemptedUser && attemptedUser.password == this.data.password) {
-      callback("Congrats!");
-    } else {
-      callback("Invalid username or password.");
-    }
+    //callback method: Instead of providing a traditional anonymous function, we provide an arrow function here. It will not manipulate or change the this keyword.
+    //promise method: all of the mongodb methods return a promise so we will use promise instead of call back to read database. Convert callback to promise
+    usersCollection
+      .findOne({ username: this.data.username })
+      .then(attemptedUser => {
+        //if mongo db does find a user that matches our condition,, it's going to pass that document as this parameter attemptedUser into our function.
+        //let see if the attemptedUser is exist at all and password is true
+        //take care of the situation where the database operation completes successfully.
+        if (attemptedUser && attemptedUser.password == this.data.password) {
+          resolve("Congrats!");
+        } else {
+          reject("Invalid username or password.");
+        }
+      })
+      .catch(function () {
+        //database error or unexpected error
+        //generic error, something wrong with the server
+        //the mongodb method fails, it has nothing to do with the user typing.
+        //error on our side as a developer
+        reject("Please try again later.");
+      });
   });
 };
 
