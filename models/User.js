@@ -60,6 +60,25 @@ User.prototype.validate = function () {
     this.errors.push("Username has to be less than 30 characters.");
   }
 };
+
+User.prototype.login = function (callback) {
+  this.cleanUp();
+  //lookup data from database using findOne method and we are trying to find a document where the username property is matching with whatever the user just type in login form.
+  //we will provide a function that findOne is going to call once the read operation has had a chance to complete
+  //when the findOne method calls our callback function, because it's not an object directly calling our function. JS is actually going to consider the global object to be what's calling our function. It's going to set this.data.password in traditional anonymous function to our lowercase user object that we created from our blueprint not this User object.
+
+  //Instead of providing a traditional anonymous function, we provide an arrow function here. It will not manipulate or change the this keyword.
+  usersCollection.findOne({ username: this.data.username }, (err, attemptedUser) => {
+    //if mongo db does find a user that matches our condition,, it's going to pass that document as this parameter attemptedUser into our function.
+    //let see if the attemptedUser is exist at all and password is true
+    if (attemptedUser && attemptedUser.password == this.data.password) {
+      callback("Congrats!");
+    } else {
+      callback("Invalid username or password.");
+    }
+  });
+};
+
 User.prototype.register = function () {
   this.cleanUp(); //not allowed to send anything for these value other than a simple string of text, no object, no array.
   //step 1: we would first want to validate user name, email, password value. we want to enforce all of our business login.
@@ -68,7 +87,7 @@ User.prototype.register = function () {
   //Step 2: only if there are no validation errors, then save a user data into a database.
   //if the errors array is empty
   if (!this.errors.length) {
-    usersCollection.insertOne(this.data);
+    usersCollection.insertOne(this.data); //this.data is an object we want to save into database.
   }
 };
 module.exports = User;
