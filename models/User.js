@@ -1,6 +1,7 @@
-const usersCollection = require("../db").collection("users");
-
+const usersCollection = require("../db").db().collection("users");
 const validator = require("validator");
+const bcrypt = require("bcryptjs");
+
 //Using constructor function to create a reuseable blueprint that we can be used to create user objects.
 //We are going to want to be able to leverage this function from within our userController file.
 
@@ -50,8 +51,8 @@ User.prototype.validate = function () {
   if (this.data.password.length > 0 && this.data.password.length < 12) {
     this.errors.push("Password has to be more than 12 characters.");
   }
-  if (this.data.password.length > 100) {
-    this.errors.push("Password has to be less than 100 characters.");
+  if (this.data.password.length > 50) {
+    this.errors.push("Password has to be less than 50 characters.");
   }
   if (this.data.username.length > 0 && this.data.username.length < 3) {
     this.errors.push("Username has to be more than 3 characters.");
@@ -80,7 +81,8 @@ User.prototype.login = function () {
         //if mongo db does find a user that matches our condition,, it's going to pass that document as this parameter attemptedUser into our function.
         //let see if the attemptedUser is exist at all and password is true
         //take care of the situation where the database operation completes successfully.
-        if (attemptedUser && attemptedUser.password == this.data.password) {
+        //step 13: using bcrypt package to compare the password
+        if (attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
           resolve("Congrats!");
         } else {
           reject("Invalid username or password.");
@@ -104,6 +106,10 @@ User.prototype.register = function () {
   //Step 2: only if there are no validation errors, then save a user data into a database.
   //if the errors array is empty
   if (!this.errors.length) {
+    //step 13: hash user password with 2 steps process with bcryptjs package
+    let salt = bcrypt.genSaltSync(10);
+    this.data.password = bcrypt.hashSync(this.data.password, salt);
+
     usersCollection.insertOne(this.data); //this.data is an object we want to save into database.
   }
 };

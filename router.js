@@ -11,5 +11,6 @@ const userController = require("./controllers/userController");
 router.get("/", userController.home);
 router.post("/register", userController.register);
 router.post("/login", userController.login);
+router.post("/logout", userController.logout);
 
 module.exports = router; //this is what we make available to any file that require in this file.

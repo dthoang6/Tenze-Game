@@ -1,5 +1,20 @@
 const express = require("express");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const flash = require("connect-flash");
 const app = express();
+
+//configure options how we want to use sessions
+let sessionOptions = session({
+  secret: "JavaScript is so cool",
+  //by default the session data store at server memory, override to store it to mongodb
+  store: MongoStore.create({ client: require("./db") }),
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 1000 * 60 * 60 * 24, httpOnly: true }
+});
+app.use(sessionOptions);
+app.use(flash()); //add flash feature to our application
 
 const router = require("./router"); //require function executes said file immediately, and returns whatever that file exports to variable router to use whenever or whatever we see fit.
 //accepting the two most common ways of submitting data on the web.

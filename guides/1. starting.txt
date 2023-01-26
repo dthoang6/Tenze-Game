@@ -141,10 +141,11 @@ user.login().then().catch()
 
   -simulate the nature of asynchronous actions
   -when we do something like talk to a database or send out a request to another server, we don't know how long those actions are going to take.
-  
+
   -asynchronous function like setTimeOut(function, 800) is going to take time to complete.
 
   -how we coordinate these four events so that each one waits until the previous one has actually completed.
+
   -when we need to coordinate multiple asynchronous events?
 
   -method 1: callback: if we can avoid this nesting, we should because in the long run our code will be much more manageable and easy to maintain.
@@ -208,7 +209,7 @@ async function run() {
 }
 run()
 
-- however, we are not going to rewrite the area where we leverage our promise.
+- however, we are not going to rewrite the area where we leverage our promise in userController and User.
 - going forward we are going to use async and await.
 
 - promise is an object that represents the event completion of an asynchronous operation.
@@ -216,24 +217,105 @@ run()
 -----------------------------
 
 12. Running multiple promise
+
+If you have multiple promises and you want to wait until they've all completed before doing something else, but you don't care what order the promises run/complete in, you can use the following syntax:
+
+async function() {
+  await Promise.all([promise1, promise2, promise3, promise4])
+  // JavaScript will wait until ALL of the promises have completed
+  console.log("All promises completed. Do something interesting now.")
+}
 -----------------------------
 
 13. hashing user passwords
 
 - not storing user passwords in plain text in our database but instead hashing the user's pass so that if our database was ever compromised or leaked, we wouldn't reveal user pass to malicious user or attacker.
 
+- when a user register for our app and they choose a pass, we can hash that pass value within our node server and then we can store that hash value in our database.
+- hashing a value just means converting it into a different value.
+- hashing is not the same thing as encrypting.
+- when you encrypt a value, that implies it can be decrypted. encryption and decryption is a two way street.
+
+- hashing a value is a one way job.
+- package: bcryptjs
+- hashing user password in register
+- update login with hashing
+-----------------------------
+- We are going to learn what it means to truly log a user in. meaning if a user types in a valid username and password in login form.
+
+- If the user went back to the homepage url, we would need some way to determine that the current request to this new url is logged in.
+- And instead of showing them the guest registration page, we should show them a template that for log in user.
+
+- how do we really log a user in?
+- how do we set up our server to be able to trust that subsequent requests after a successful login?
 -----------------------------
 
-- how can we indentify or trust a request:
+- 14. how can we identify or trust an incoming request: 01/26/2023
+
+.as soon as the http request is complete, our server responds to that login request that marks the end of the life cycle of that http request.
+.from that moment forward, the server has no memory of the browser and the browser has no memory of the server.
+
+.the server has no memory that the visitor just entered the correct username and password.
+.the web browser is still seeing the registration home page.
+
+.how to set things up so the server can trust an incoming request?
+.http requests are stateless, that each request is ran without any knowledge of the requests that came before it.
+.how to set up so that after a user login, the server trust the subsequent request from that browser?
+
+.there are two primary technologies that can solve this issue of identifying and trusting subsequent requests?
+- 1. sessions or
+- 2. tokens
+
+.we start with sessions and when we set up a simple API for our application, we learn how to use tokens.
+
+-enable sessions with package express-session
+-leverage the express-session
+-configure options to use
+-setup the session req.session.user = {..}
+
+.the whole idea of a session is that it allows us to have some sort of persistent data from one request to another, meaning our server is going to remember this session data.
+.we can use this session data if someone visits the homepage 
+
+.how the server identifying this unique web browser or visitor or request? cookies
+.once a web browser has the cookie, it's going to send any and all cookies for the current domain back to the node server with every single request automatically.
+.so the server is going to see this cookie unique identifier value so the server will trust this request.
 -----------------------------
 
-- Understanding sessions
+- 15. Understanding sessions
+
+.package connect-mongo to store session into database
+.configure session options to store session data to database
+.adjust db.js
+.update how to use db to CRUD
+
+.all that gets stored in the cookie is the unique session identifier, but all of the actual session data lives on the server side or database side.
+
+.in the future, we will set things up so that if you successfully register, the system automatically logs you in.
+
+-setup home-dashboard.ejs; copy html raw code into this file
+-in userController exports.home = ...
+
+-in ejs to do something dynamic, to run a bit of js we use syntax:
+<%= ... %>
+
 -----------------------------
 
-- let users log out
+16. let users log out
+
+.make the sign out button come to life
+.give users the ability to sign out or destroy their current session
+.html -> router -> userController -> Model
+
+.first step, html template to where this sign out submit form submit
+.login redirect to homepage, logout redirect to home page
+
+-What if I perform a failed logging attempt?
+
 -----------------------------
 
-- adding flash messages
+17. adding flash messages
+
+.
 -----------------------------
 
 - user registration improvement
