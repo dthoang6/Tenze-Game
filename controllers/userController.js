@@ -40,7 +40,7 @@ exports.login = function (req, res) {
       });
     })
     .catch(function (e) {
-      //we perform a redirect if login fail, that's going to be considered a new separate request. Since we redirect to the homepage, our router is going to call our home function at the bottom.
+      //step 17: we perform a redirect if login fail, that's going to be considered a new separate request. Since we redirect to the homepage, our router is going to call our home function at the bottom.
       //leverage flash message package
       //a=name of a collection or an array of messages that we want to start building or adding on to.
       //b=actual message that you want to add to collection or array, which is e because that's the value that our promise is going to reject with and passed into the function.
@@ -53,9 +53,8 @@ exports.login = function (req, res) {
 };
 
 exports.logout = function (req, res) {
-  //because this destroy method is going to have to deal with our database, using promise because we want to be sure that tasks has completed before redirecting them to the home page.
+  //step 16: because this destroy method is going to have to deal with our database, using promise because we want to be sure that tasks has completed before redirecting them to the home page.
   //we use callback because the session package functions does not return promise yet.
-
   req.session.destroy(function () {
     res.redirect("/");
   });
@@ -67,7 +66,15 @@ exports.register = function (req, res) {
   //when it comes to conditions within an if statement, any number larger than zero evaluates to true
   //in the future set up this login in models.
   if (user.errors.length) {
-    res.send(user.errors);
+    //res.send(user.errors);
+    //step 18.1: use the flash package to add these errors into our session data.
+    user.errors.forEach(function (error) {
+      req.flash("regErrors", error); //create array regErrors and add error into it.
+    });
+    req.session.save(function () {
+      res.redirect("/");
+    });
+    //now go to home function to adjust to send session data regErrors to html template.
   } else {
     res.send("There are no errors.");
   }
@@ -83,6 +90,8 @@ exports.home = function (req, res) {
   } else {
     //we need to remember the stateless http request runs, our server has no memory to know a login just failed. because we are not always want to show a message.
     //leverage session to know if login fail
-    res.render("home-guest");
+    //we want to access that errors data and delete it from the session data base as soon as we've accessed it, which flash package will do it automatically.
+    //Then we can leverage the error message from home-guest
+    res.render("home-guest", { errors: req.flash("errors"), regErrors: req.flash("regErrors") });
   }
 };

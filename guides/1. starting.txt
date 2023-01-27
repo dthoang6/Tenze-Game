@@ -13,7 +13,7 @@
 - what is a promise
 - Running multiple promise
 - hashing user passwords
-- how can we indentify or trust a request:
+- how can we identify or trust a request:
 - Understanding sessions
 
 - let users log out
@@ -315,10 +315,44 @@ async function() {
 
 17. adding flash messages
 
-.
+.when user perform a fail login
+.redirect them to homepage with flash messages
+
+.package connect-flash
+.leverage the package in app.js
+.controller user login in userController.js
+
+.if we perform a redirect, that's going to be considered a new separate request. Since we redirect to the homepage, our router is going to call our home function at the bottom.
+
+.how can we render the home-guest template so that it includes a little red warning box that says invalid username and pass? leverage session to know if login fail
+
+.flash package will help us to add and remove data from our session and save it to our database.
+
+...ath this point, both failed login attempts and successful login attempts are handled smoothly.
+
+.we can use session and flash messages to improve our user registration experience.
 -----------------------------
 
-- user registration improvement
+18. user registration improvement
+
+18.1
+-if there are validation errors with registration form data when they submit the form, show those validation errors in small red rectangles right above the registration form.
+
+.userController -> register function --> home function --> home-guest.ejs to leverage the regErrors array of message
+
+- Big picture: we want validation on both sides, the server side for security reasons and the browser side for user experience.
+  .in the future we can perform live, on the fly validation and show the error messages directly on top of the related field for that message.
+  .It's good to have a traditional server side validation setup.
+  .Because we can never actually rely or trust browser side validation because an end user can disable browser site JS.
+
+18.2
+
+.add the validation rules that make sure that your username and email have not already taken and enforce it.
+.username and email are unique
+
+.Model/User.js to enforce our rules.
+
+18.3
 -----------------------------
 
 - adding user profile photos

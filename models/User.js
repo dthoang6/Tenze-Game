@@ -33,7 +33,7 @@ User.prototype.cleanUp = function () {
   };
 };
 
-User.prototype.validate = function () {
+User.prototype.validate = async function () {
   if (this.data.username == "") {
     this.errors.push("You must provide a username.");
   }
@@ -59,6 +59,25 @@ User.prototype.validate = function () {
   }
   if (this.data.username.length > 30) {
     this.errors.push("Username has to be less than 30 characters.");
+  }
+
+  //step 18.2 Only if username is valid then check to see if its already taken
+  if (this.data.username.length > 2 && this.data.username.length < 31 && validator.isAlphanumeric(this.data.username)) {
+    let usernameExists = await usersCollection.findOne({ username: this.data.username });
+    //if the mongodb can find a matching document, this promise will resolve to usernameExists an object that represents a document.
+    //if mongodb can not find a matching document, this promise will resolve a null, for if statement null == false
+    if (usernameExists) {
+      this.errors.push("That username is already taken.");
+    }
+  }
+  //step 18.2: for email check
+  if (validator.isEmail(this.data.email)) {
+    let emailExists = await usersCollection.findOne({ email: this.data.email });
+    //if the mongodb can find a matching document, this promise will resolve to usernameExists an object that represents a document.
+    //if mongodb can not find a matching document, this promise will resolve a null, for if statement null == false
+    if (emailExists) {
+      this.errors.push("That email is already being use.");
+    }
   }
 };
 
@@ -101,6 +120,9 @@ User.prototype.login = function () {
 User.prototype.register = function () {
   this.cleanUp(); //not allowed to send anything for these value other than a simple string of text, no object, no array.
   //step 1: we would first want to validate user name, email, password value. we want to enforce all of our business login.
+
+  //in step 18.2 we adjust validate function to async function,(step 18.3) so we need to adjust our validate function to return a promise and then we can await that promise down here in the register function
+
   this.validate(); //like we're saying user.validate() because this keyword point toward the user object calling register method in userController. It means this keyword points toward whatever is calling or executing the current function.
 
   //Step 2: only if there are no validation errors, then save a user data into a database.
