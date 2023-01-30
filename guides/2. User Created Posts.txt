@@ -1,0 +1,25 @@
+71. Letting user created posts
+73. Post Model
+75. Viewing a Post
+77. Performing a Lookup in mongodb
+79. User profile screen
+80. View posts by author
+81. Is the current visitor the owner of the post?
+82. The "Edit" Screen for a post
+83. Updating posts in database
+85. Miscellaneous improvements
+86. Markdown: safe user generated html
+88. Let users delete a post
+----------------------------
+71. Letting user created posts
+73. Post Model
+75. Viewing a Post
+77. Performing a Lookup in mongodb
+79. User profile screen
+80. View posts by author
+81. Is the current visitor the owner of the post?
+82. The "Edit" Screen for a post
+83. Updating posts in database
+85. Miscellaneous improvements
+86. Markdown: safe user generated html
+88. Let users delete a post

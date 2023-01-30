@@ -328,7 +328,7 @@ async function() {
 
 .flash package will help us to add and remove data from our session and save it to our database.
 
-...ath this point, both failed login attempts and successful login attempts are handled smoothly.
+...at this point, both failed login attempts and successful login attempts are handled smoothly.
 
 .we can use session and flash messages to improve our user registration experience.
 -----------------------------
@@ -352,7 +352,98 @@ async function() {
 
 .Model/User.js to enforce our rules.
 
-18.3
------------------------------
+-----01/27/2023
+18.3: adjust the validate, register function to return a Promise
 
-- adding user profile photos
+- when we working with database, it is a asynchronous actions, so we need to be careful to make sure that it actually completes before JavaScript will move on.
+
+- goals: right before we check to see if there are errors or not, we better first complete running all of our validation checks, including those asynchronous calls to the database to check for the uniqueness of username and email.
+
+--->User.js -adjust our validate function to return a promise and then we can await that promise down here in the register function.
+
+- User.prototype.validate = function() {
+  return new Promise(async (resolve, reject) = > {... resolve()})
+}
+- go leverage this validate in our register function because this validate function is going to return a promise, we can add await when calling it.
+
+- we have to adjust register to async function to await the validate promise function.
+
+- register is now an async function, we need to pay attention to where and how we are calling it.
+
+- when our userController.js call our register async function, so we need to make sure that we give it a chance to actually complete before the next operation would begin.
+
+---> it means we need to adjust our Register function so that it returns a Promise and then we can await the Register Promise with await or then.catch if we calling Register function in our controller.
+
+User.prototype.register = function() {
+  return new Promise(async (resolve, reject) = > {... resolve()})
+
+- to complete Register Promise we need to call either resolve or reject at the right time.
+
+01/28/23:
+- reviews fullstack apps
+  -user registration and user generated post with MVC
+  -User authentication with session or tokens
+  -how to control database, create server, CRUD
+  -call back, promise, async/await
+
+- Understanding
+- practice 7 steps coding, 5 approaches
+-----------------------------
+01/30/2023
+19. adding user profile photos
+- how to pull in a relevant image from gravatar service based on the current logged in users email address
+- then , we change topics from user accounts and sessions and move on to letting users actually create posts.
+
+.Gravatar service
+.gravatar.com/avatar/hashtagvalue?s=128
+.we want to focus on hashtagvalue which is a user's email address, but hash the email address using the md5 library
+.we can show this photo publicly on web application without knowing email address
+---
+.we create a new function getAvatar within User.js
+.add a new property avatar onto our main User object and set it to a template literal.
+
+User.prototype.getAvatar = function () {
+  this.avatar = `https://gravatar.com/avatar/email?s=128`
+}
+
+.replace the word email with the current user's email address hash value using md5 library.
+.call this getAvatar function at the appropriate time
+.call it once a user has successfully logged in or register.
+.Then we leverage the new property avatar after calling getAvatar in User Controller after login, and register using session.
+.Next, how can we access that piece of session data from within our home dashboard html template?
+
+.we need to pass this avatar data using home function because we redirect it based on session:
+
+exports.home = function (req, res) {
+
+  if (req.session.user) {
+      res.render("home-dashboard", { username: req.session.user.username });
+    } else {
+      res.render("home-guest", { errors: req.flash("errors"), regErrors: req.flash("regErrors") });
+    }
+  };
+
+.Finally we using <%= avatar %> to do something dynamic in home-dashboard.ejs
+---
+.we call it after the database action because we don't want to store the avatar in the database permanently.
+.In the future, the gravatar may change the url structure an at that point, we would have to go through every user account in our database and update their avatar database field.
+.It makes more sense to just generate on the fly when we need it because the hashing operation is quick and cheap.
+.So we just store this in memory on the user object.
+
+----Conclusion:
+- We have set up the basic functionality of registering and logging in and out.
+- Now we move on to the first real feature of our app, which is letting users create posts or articles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

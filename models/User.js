@@ -1,6 +1,7 @@
 const usersCollection = require("../db").db().collection("users");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const md5 = require("md5");
 
 //Using constructor function to create a reuseable blueprint that we can be used to create user objects.
 //We are going to want to be able to leverage this function from within our userController file.
@@ -9,7 +10,7 @@ const bcrypt = require("bcryptjs");
 //the arrow function doesn't change the value of this keyword to point towards the object that called the method.
 
 let User = function (data) {
-  this.data = data; //we are taking the data that just got passed in via the parameter and we are storing it (user submit data) within a property that we can access again later.
+  this.data = data; //we are taking the data that just got passed in via the parameter of userController, req.body, and we are storing it (user submit data) within a property that we can access again later.
   /* this.jump = function() {} //this is not an efficient way to create a method for User Object because if we create 5000 objects using this blueprint, js will add this jump method to 5000 objects and it is a lot of duplication. */
   this.errors = [];
 };
@@ -33,52 +34,58 @@ User.prototype.cleanUp = function () {
   };
 };
 
-User.prototype.validate = async function () {
-  if (this.data.username == "") {
-    this.errors.push("You must provide a username.");
-  }
-  //if the user type something and if it is alphanumeric, we would want to check for the opposite.
-  if (this.data.username != "" && !validator.isAlphanumeric(this.data.username)) {
-    this.errors.push("username can only contain letters and numbers.");
-  }
-  //using a validator package to check email: using ! to check for the opposite because we only want to push this error if what the user typed is not a valid email.
-  if (!validator.isEmail(this.data.email)) {
-    this.errors.push("You must provide a valid email address.");
-  }
-  if (this.data.password == "") {
-    this.errors.push("You must provide a password.");
-  }
-  if (this.data.password.length > 0 && this.data.password.length < 12) {
-    this.errors.push("Password has to be more than 12 characters.");
-  }
-  if (this.data.password.length > 50) {
-    this.errors.push("Password has to be less than 50 characters.");
-  }
-  if (this.data.username.length > 0 && this.data.username.length < 3) {
-    this.errors.push("Username has to be more than 3 characters.");
-  }
-  if (this.data.username.length > 30) {
-    this.errors.push("Username has to be less than 30 characters.");
-  }
+User.prototype.validate = function () {
+  return new Promise(async (resolve, reject) => {
+    //convert anonymous function to arrow function
 
-  //step 18.2 Only if username is valid then check to see if its already taken
-  if (this.data.username.length > 2 && this.data.username.length < 31 && validator.isAlphanumeric(this.data.username)) {
-    let usernameExists = await usersCollection.findOne({ username: this.data.username });
-    //if the mongodb can find a matching document, this promise will resolve to usernameExists an object that represents a document.
-    //if mongodb can not find a matching document, this promise will resolve a null, for if statement null == false
-    if (usernameExists) {
-      this.errors.push("That username is already taken.");
+    if (this.data.username == "") {
+      this.errors.push("You must provide a username.");
     }
-  }
-  //step 18.2: for email check
-  if (validator.isEmail(this.data.email)) {
-    let emailExists = await usersCollection.findOne({ email: this.data.email });
-    //if the mongodb can find a matching document, this promise will resolve to usernameExists an object that represents a document.
-    //if mongodb can not find a matching document, this promise will resolve a null, for if statement null == false
-    if (emailExists) {
-      this.errors.push("That email is already being use.");
+    //if the user type something and if it is alphanumeric, we would want to check for the opposite.
+    if (this.data.username != "" && !validator.isAlphanumeric(this.data.username)) {
+      this.errors.push("username can only contain letters and numbers.");
     }
-  }
+    //using a validator package to check email: using ! to check for the opposite because we only want to push this error if what the user typed is not a valid email.
+    if (!validator.isEmail(this.data.email)) {
+      this.errors.push("You must provide a valid email address.");
+    }
+    if (this.data.password == "") {
+      this.errors.push("You must provide a password.");
+    }
+    if (this.data.password.length > 0 && this.data.password.length < 12) {
+      this.errors.push("Password has to be more than 12 characters.");
+    }
+    if (this.data.password.length > 50) {
+      this.errors.push("Password has to be less than 50 characters.");
+    }
+    if (this.data.username.length > 0 && this.data.username.length < 3) {
+      this.errors.push("Username has to be more than 3 characters.");
+    }
+    if (this.data.username.length > 30) {
+      this.errors.push("Username has to be less than 30 characters.");
+    }
+
+    //step 18.2 Only if username is valid then check to see if its already taken
+    if (this.data.username.length > 2 && this.data.username.length < 31 && validator.isAlphanumeric(this.data.username)) {
+      let usernameExists = await usersCollection.findOne({ username: this.data.username });
+      //if the mongodb can find a matching document, this promise will resolve to usernameExists an object that represents a document.
+      //if mongodb can not find a matching document, this promise will resolve a null, for if statement null == false
+      if (usernameExists) {
+        this.errors.push("That username is already taken.");
+      }
+    }
+    //step 18.2: for email check
+    if (validator.isEmail(this.data.email)) {
+      let emailExists = await usersCollection.findOne({ email: this.data.email });
+      //if the mongodb can find a matching document, this promise will resolve to usernameExists an object that represents a document.
+      //if mongodb can not find a matching document, this promise will resolve a null, for if statement null == false
+      if (emailExists) {
+        this.errors.push("That email is already being use.");
+      }
+    }
+    //step 18.3 call resolve to signify that this operation or promise has actually completed.
+    resolve();
+  });
 };
 
 User.prototype.login = function () {
@@ -102,6 +109,10 @@ User.prototype.login = function () {
         //take care of the situation where the database operation completes successfully.
         //step 13: using bcrypt package to compare the password
         if (attemptedUser && bcrypt.compareSync(this.data.password, attemptedUser.password)) {
+          //step 19: pull in the user avatar
+          //we need to grab the associated email with that user account from the database.
+          this.data = attemptedUser;
+          this.getAvatar();
           resolve("Congrats!");
         } else {
           reject("Invalid username or password.");
@@ -118,21 +129,36 @@ User.prototype.login = function () {
 };
 
 User.prototype.register = function () {
-  this.cleanUp(); //not allowed to send anything for these value other than a simple string of text, no object, no array.
-  //step 1: we would first want to validate user name, email, password value. we want to enforce all of our business login.
+  return new Promise(async (resolve, reject) => {
+    this.cleanUp(); //not allowed to send anything for these value other than a simple string of text, no object, no array.
+    //step 1: we would first want to validate user name, email, password value. we want to enforce all of our business login.
 
-  //in step 18.2 we adjust validate function to async function,(step 18.3) so we need to adjust our validate function to return a promise and then we can await that promise down here in the register function
+    //in step 18.2 we adjust validate function to async function,(step 18.3) so we need to adjust our validate function to return a promise and then we can await that promise down here in the register function
 
-  this.validate(); //like we're saying user.validate() because this keyword point toward the user object calling register method in userController. It means this keyword points toward whatever is calling or executing the current function.
+    //step 18.3 we add await when calling validate function, so now all of our validation checks will actually complete before the the step 2 code run down here. And again, we can only use the word await in async function, so add it to register function.
 
-  //Step 2: only if there are no validation errors, then save a user data into a database.
-  //if the errors array is empty
-  if (!this.errors.length) {
-    //step 13: hash user password with 2 steps process with bcryptjs package
-    let salt = bcrypt.genSaltSync(10);
-    this.data.password = bcrypt.hashSync(this.data.password, salt);
+    await this.validate(); //like we're saying user.validate() because this keyword point toward the user object calling register method in userController. It means this keyword points toward whatever is calling or executing the current function.
 
-    usersCollection.insertOne(this.data); //this.data is an object we want to save into database.
-  }
+    //Step 2: only if there are no validation errors, then save a user data into a database.
+    //if the errors array is empty
+    if (!this.errors.length) {
+      //step 13: hash user password with 2 steps process with bcryptjs package
+      let salt = bcrypt.genSaltSync(10);
+      this.data.password = bcrypt.hashSync(this.data.password, salt);
+      //make sure this database action complete
+      await usersCollection.insertOne(this.data); //this.data is an object we want to save into database.
+      //step 19: pull in the user avatar
+      this.getAvatar(); //we call it after the database action because we don't want to store the avatar in the database permanently.
+      resolve();
+    } else {
+      //if the else code run, that mean there were errors.
+      //call reject and reject with our array of errors.
+      reject(this.errors);
+    }
+  });
+};
+
+User.prototype.getAvatar = function () {
+  this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`;
 };
 module.exports = User;

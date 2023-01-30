@@ -28,7 +28,7 @@ exports.login = function (req, res) {
       //now, we can store any information we want and that will be specific or unique to this one visitor or web browser.
       //the whole idea of a session is that it allows us to have some sort of persistent data from one request to another, meaning our server is going to remember this session data.
 
-      req.session.user = { username: user.data.username }; //when we leveraging session object here, 2 things happened: server is going to store this session data in memory, and the session package is going to send instructions to the web browser to create a cookie.
+      req.session.user = { avatar: user.avatar, username: user.data.username }; //when we leveraging session object here, 2 things happened: server is going to store this session data in memory, and the session package is going to send instructions to the web browser to create a cookie.
 
       //instead of storing session data in memory, let's store it in our mongodb database
 
@@ -62,22 +62,29 @@ exports.logout = function (req, res) {
 
 exports.register = function (req, res) {
   let user = new User(req.body); //creating a new object using reuseable User() blueprint. this keyword is what allows our blueprint to be flexible. It's how we point towards the current object that is going to get created. Pass into it an argument as form field values that user submitted.
-  user.register();
-  //when it comes to conditions within an if statement, any number larger than zero evaluates to true
-  //in the future set up this login in models.
-  if (user.errors.length) {
-    //res.send(user.errors);
-    //step 18.1: use the flash package to add these errors into our session data.
-    user.errors.forEach(function (error) {
-      req.flash("regErrors", error); //create array regErrors and add error into it.
+  //step 18.3: adjust code because register function will return a Promise we can either use async/await or then().catch()
+  user
+    .register()
+    .then(() => {
+      //what we want to do if the registration is successful.
+      //instead of sending users to an awkward intermediate screen that just says congrats, we redirect them to the home page, but update their session data so that they're actually logged in.
+      req.session.user = { username: user.data.username, avatar: user.avatar };
+      req.session.save(function () {
+        res.redirect("/");
+      });
+      //In the future, we can set things up so that our controller doesn't even need to be aware of this data structure and instead our promise would resolve back with the necessary data.
+    })
+    .catch(regErrors => {
+      //regErrors is the value that the promise rejects with.
+      //step 18.1: use the flash package to add these errors into our session data.
+      regErrors.forEach(function (error) {
+        req.flash("regErrors", error); //create array regErrors and add error into it.
+      });
+      req.session.save(function () {
+        res.redirect("/");
+      });
+      //now go to home function to adjust to send session data regErrors to html template.
     });
-    req.session.save(function () {
-      res.redirect("/");
-    });
-    //now go to home function to adjust to send session data regErrors to html template.
-  } else {
-    res.send("There are no errors.");
-  }
 };
 
 exports.home = function (req, res) {
@@ -86,7 +93,7 @@ exports.home = function (req, res) {
     //step 15: set things up so that if you successfully register, the system automatically logs you in new UI
     //send back the template you want to render, and include any data, message that you want to pass into this template.
     //then we will have a property username available to us from within home-dashboard ejs
-    res.render("home-dashboard", { username: req.session.user.username });
+    res.render("home-dashboard", { username: req.session.user.username, avatar: req.session.user.avatar });
   } else {
     //we need to remember the stateless http request runs, our server has no memory to know a login just failed. because we are not always want to show a message.
     //leverage session to know if login fail
