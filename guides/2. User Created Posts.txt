@@ -11,8 +11,87 @@
 86. Markdown: safe user generated html
 88. Let users delete a post
 ----------------------------
-71. Letting user created posts
-73. Post Model
+
+
+71. Letting user created posts: 01/30/23
+- post controller and post model
+- what do we want to happen if a logged in user clicks on create post button?
+- we want to take them to a new url that renders a new html template.
+
+.using html template for create-post.ejs
+.adjust create post button to point towards a specific route /create-post in home-dashboard.ejs
+.setup a route for this matching url within our router file and calling post controller function.
+.setup a postController and start exporting function that the router can call.
+
+exports.viewCreateScreen = function (req, res) {
+  res.render("create-post");
+};
+
+.before we move any further, we want to make sure that you can only visit this route if you're logged in.
+.if you're not logged in and you visit this create-post url, you should be redirect to the home page with a red flag error message.
+.It means we restrict a route so that only logged in users can access it by creating a reusable function mustBeLoggedIn in user controller and call it in router for restrict url.
+
+---
+-create-post.ejs is a new template with hard fake code, so we need to adjust and update the gravatar image, logout button.
+-we need to pass into create-post.ejs a relevant session data to power the unique gravatar.
+
+exports.viewCreateScreen = function (req, res) {
+  res.render("create-post", { username: req.session.user.username, avatar: req.session.user.avatar });
+};
+
+.when we render a create-post.ejs, we give it a second argument to send it an object which is a data that gets passed into the template.
+.instead of making an update to each header of each template, we going to create one single reusable template file for header.
+.views/includes/header.ejs
+.header.ejs, copy the header of home-dashboard to this header.ejs
+.then include the header.ejs to home-dashboard.ejs. create-post.ejs to remove the duplication code.
+
+<%- include("includes/header") %>
+---------------------
+-72. remove the duplication code when we pass session data into the current template that we want to render.
+
+.get rid of this in userController, and postController
+
+{ username: req.session.user.username, avatar: req.session.user.avatar }
+
+.in app.js, telling express to run the function for every request so that we have access to a "user property" from within any of our ejs templates by: <% user.  %>
+
+-----set thing up so that our guest homepage template also pulls in our shared header.ejs
+
+.copy logging form from home-guest.ejs and delete the header code
+.using if else to set up header.ejs if user login or not
+.include header in home-guest.ejs
+
+-----set up reusable file for our footer so our templates will not have any duplicated code.
+-------------------
+
+73. Post Model: Saving a post into database
+
+.be aware of where this create-post form is submitting to.
+.when the form is submit, it is a post request
+.when the create post button click, it is a get request
+- postController.create function
+
+.create a Post.js model to manage the data
+.if a post was successful created, when call create function. the create function will return a promise with resolve and we want to redirect the user to the new url for that post and flash a message.
+
+.if the post was not created, then create function will return a promise with rejects which is a array of errors.
+
+Post.prototype.cleanUp = function () {};
+
+Post.prototype.validate = function () {};
+
+Post.prototype.create = function () {};
+
+---missing the author of post
+- we want to keep track of which user account created which posts documents.
+- we would want another field named author, but we would not want to set its value to the user name because in most applications, users can change their username.
+- mongodb document has a unique ID value
+
+-using session data
+.whenever user login or register we're going to store avatar, username, id of user in the user current session data.
+.within our postController we pass the session data we save from userController, when we using Post model to create post so the Post will receive the id data.
+
+
 75. Viewing a Post
 77. Performing a Lookup in mongodb
 79. User profile screen

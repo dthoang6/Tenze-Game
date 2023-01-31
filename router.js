@@ -5,12 +5,18 @@
 const express = require("express");
 const router = express.Router(); //express framework will return a mini application or  a router.
 const userController = require("./controllers/userController");
+const postController = require("./controllers/postController");
 
 //same like app.get() app.post(). Instead of working with express app, express router.
 //it would be better if our router did not have to contain these actual functions and instead could just call said functions that live in a separate file. The router should not store all the logic, function.
+//user related routes
 router.get("/", userController.home);
 router.post("/register", userController.register);
 router.post("/login", userController.login);
 router.post("/logout", userController.logout);
+
+//post related routes
+router.get("/create-post", userController.mustBeLoggedIn, postController.viewCreateScreen);
+router.post("/create-post", userController.mustBeLoggedIn, postController.create);
 
 module.exports = router; //this is what we make available to any file that require in this file.

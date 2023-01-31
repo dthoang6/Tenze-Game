@@ -1,5 +1,6 @@
 1. Starting to build our complex app: 6h
 2. User Created Posts: 4h
+
 3. Live Search Feature: 2h
 4. Letting Users follow each other: 2h
 5. Live Chat - socket.io: 2h

@@ -16,6 +16,13 @@ let sessionOptions = session({
 app.use(sessionOptions);
 app.use(flash()); //add flash feature to our application
 
+//72.  when we say app.use, we are telling express to run this function for every request. It means that we now have access to a user property from within any of our ejs templates.
+app.use(function (req, res, next) {
+  //we are now working with an object that will be available from within our ejs templates so we can add any objects or properties we want onto this locals object.
+  res.locals.user = req.session.user;
+  next(); //and then since we are calling next, express will move on to run the actual relevant functions for a particular route.
+});
+
 const router = require("./router"); //require function executes said file immediately, and returns whatever that file exports to variable router to use whenever or whatever we see fit.
 //accepting the two most common ways of submitting data on the web.
 app.use(express.urlencoded({ extended: false })); //1. traditional html form submit, tell express to add the user submitted data onto our request object. Then we can access it from request body.
@@ -25,7 +32,9 @@ app.use(express.static("public")); //public folder: css, js browser files that w
 app.set("views", "views"); //a = express option, b is the second views is the folder name, it can be different.
 app.set("view engine", "ejs"); //b = tell express which template engine we are using: EJS/Pug/Handlebars
 
-app.use("/", router); //a=which url to use this router for, b = the router that you want to use. Using Router to keep our main file clean and organized.
+app.use("/", router);
+
+//a=which url to use this router for, b = the router that you want to use. Using Router to keep our main file clean and organized.
 /* app.get("/", function (req, res) {
   //res.send("Welcome to our complex app.");
   res.render("home-guest");
