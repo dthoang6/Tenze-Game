@@ -82,7 +82,7 @@ Post.prototype.validate = function () {};
 
 Post.prototype.create = function () {};
 
----missing the author of post
+------------missing the author of post
 - we want to keep track of which user account created which posts documents.
 - we would want another field named author, but we would not want to set its value to the user name because in most applications, users can change their username.
 - mongodb document has a unique ID value
@@ -91,9 +91,36 @@ Post.prototype.create = function () {};
 .whenever user login or register we're going to store avatar, username, id of user in the user current session data.
 .within our postController we pass the session data we save from userController, when we using Post model to create post so the Post will receive the id data.
 
+75. Viewing a Post: 01/31/23
+- work on the ability to view a post within our Web App instead of just this private mongodb database screen
+- we want each post has its unique url
 
-75. Viewing a Post
+.how can we view that existing post from within our website, from within url for that post?
+.start with single-post-screen.ejs template with hard fake code
+.imagine: localhost:3000/post/abc
+.using router to set up url for post and calling viewSingle function for this incoming url request
+
+.setup the last part of post url to the id of the post with: viewSingle, and findSingleById function.
+.we are not trying to create a new instance of a post (object oriented approach) instead we calling a function by adding a property as a function into the Post Model.
+
+.working with single-post-screen.ejs for dynamic data to pull in real data
+  post.title
+  post.createdDate
+  post.body
+  .author: pull in the author of the post is a bit more challenging because we're store the author's username. We only store the ID of the user account.
+    .from post document we have an author id, using this id to look up for matching user document for username, email, gravatar.
+    .it means we perform the look up in next step
+    .the aggregate operations are not actually manipulating any data in the database.
+    .It's simply returning data that we can use however we want.
+    .We want to use this data within our controller and passing it to an html template.
+----------------------------------
 77. Performing a Lookup in mongodb
+- setup 404 template
+- pulling in the author username, email, gravatar with Post.findSingleById
+- clean up the posts array to return on ly author username and avatar
+
+- we get avatar by update User Object to have getAvatar argument, so if the getAvatar is true, call getAvatar function.
+
 79. User profile screen
 80. View posts by author
 81. Is the current visitor the owner of the post?

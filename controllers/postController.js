@@ -19,3 +19,12 @@ exports.create = function (req, res) {
       res.send(errors);
     });
 };
+
+exports.viewSingle = async function (req, res) {
+  try {
+    let post = await Post.findSingleById(req.params.id);
+    res.render("single-post-screen", { post: post }); //we are passing a property of post which is the document from database to pull in data for single post template.
+  } catch {
+    res.render("404");
+  }
+};
