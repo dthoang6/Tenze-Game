@@ -166,4 +166,40 @@ User.prototype.register = function () {
 User.prototype.getAvatar = function () {
   this.avatar = `https://gravatar.com/avatar/${md5(this.data.email)}?s=128`;
 };
+
+//our controller will pass in whatever username is at the end of the url.
+User.findByUsername = function (username) {
+  return new Promise(function (resolve, reject) {
+    //check the username
+    if (typeof username != "string") {
+      reject();
+      return;
+    }
+    //perform findOne database operation
+    usersCollection
+      .findOne({ username: username })
+      .then(function (userDoc) {
+        //if a mongo operation is successful and resolves well, it would resolve with the data it found, so we can receive it within these then function parentheses "userDoc".
+        if (userDoc) {
+          //customize the user document to not leak out or expose data link password
+          //we taking the raw data userDoc to create a new user document by passing 2 parameters: raw data, and getAvatar
+          userDoc = new User(userDoc, true);
+          //pass only 3 properties
+          userDoc = {
+            _id: userDoc.data._id,
+            username: userDoc.data.username,
+            avatar: userDoc.avatar
+          };
+          resolve(userDoc);
+          //when we resolve, we want to resolve with a userDoc value, and our controller will save this value onto the request object so that we can use it later to display the profile to find posts written by the user.
+        } else {
+          reject();
+        }
+      })
+      .catch(function () {
+        //if the mongo db method rejects, that does not mean it couldn't find a matching document. That means it ran into some sort of error.
+        reject("404");
+      });
+  });
+};
 module.exports = User;

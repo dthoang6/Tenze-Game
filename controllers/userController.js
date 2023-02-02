@@ -1,5 +1,5 @@
 const User = require("../models/User");
-
+const Post = require("../models/Post");
 //each of controllers will contain relevant functions for that feature.
 
 //when the node environment sees this code, it's going to make sure that a property named login is added to what's getting exported from this file.
@@ -113,4 +113,34 @@ exports.home = function (req, res) {
     //Then we can leverage the error message from home-guest
     res.render("home-guest", { errors: req.flash("errors"), regErrors: req.flash("regErrors") });
   }
+};
+
+exports.ifUserExists = function (req, res, next) {
+  User.findByUsername(req.params.username)
+    .then(function (userDocument) {
+      /* if our promise resolves with the value of the user document that it found in database that matches the requested username that would get passed into this function as: userDocument */
+      //store userDocument in req object so that we can access it profilePostsScreen function.
+      req.profileUser = userDocument;
+      next();
+    })
+    .catch(function () {
+      res.render("404");
+    });
+};
+
+exports.profilePostsScreen = function (req, res) {
+  //ask our Post model for posts by a certain author id
+  //findByAuthorId will resolve with a value which is an array of posts.
+  Post.findByAuthorId(req.profileUser._id)
+    .then(function (posts) {
+      //render the profile template and pass the req object with data when ifuserexist above and array of posts .
+      res.render("profile", {
+        posts: posts,
+        profileUsername: req.profileUser.username,
+        profileAvatar: req.profileUser.avatar
+      });
+    })
+    .catch(function () {
+      reject("404");
+    });
 };

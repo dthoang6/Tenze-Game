@@ -271,13 +271,13 @@ async function() {
 -enable sessions with package express-session
 -leverage the express-session
 -configure options to use
--setup the session req.session.user = {..}
+-setup the session req.session.user = {save the data when user login, register...}
 
 .the whole idea of a session is that it allows us to have some sort of persistent data from one request to another, meaning our server is going to remember this session data.
 .we can use this session data if someone visits the homepage 
 
 .how the server identifying this unique web browser or visitor or request? cookies
-.once a web browser has the cookie, it's going to send any and all cookies for the current domain back to the node server with every single request automatically.
+.once a web browser has the cookie, the browser is going to send any and all cookies for the current domain back to the node server with every single request automatically.
 .so the server is going to see this cookie unique identifier value so the server will trust this request.
 -----------------------------
 

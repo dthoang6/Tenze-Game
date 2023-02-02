@@ -20,7 +20,7 @@
 
 .using html template for create-post.ejs
 .adjust create post button to point towards a specific route /create-post in home-dashboard.ejs
-.setup a route for this matching url within our router file and calling post controller function.
+.setup a route for this matching url within our router file and calling function:  postController.viewCreateScreen.
 .setup a postController and start exporting function that the router can call.
 
 exports.viewCreateScreen = function (req, res) {
@@ -29,7 +29,8 @@ exports.viewCreateScreen = function (req, res) {
 
 .before we move any further, we want to make sure that you can only visit this route if you're logged in.
 .if you're not logged in and you visit this create-post url, you should be redirect to the home page with a red flag error message.
-.It means we restrict a route so that only logged in users can access it by creating a reusable function mustBeLoggedIn in user controller and call it in router for restrict url.
+.It means we restrict a route so that only logged in users can access it by creating a reusable function: 
+userController.mustBeLoggedIn in user controller and call it in router for restrict url.
 
 ---
 -create-post.ejs is a new template with hard fake code, so we need to adjust and update the gravatar image, logout button.
@@ -107,22 +108,44 @@ Post.prototype.create = function () {};
   post.title
   post.createdDate
   post.body
-  .author: pull in the author of the post is a bit more challenging because we're store the author's username. We only store the ID of the user account.
+  .author: pull in the author of the post is a bit more challenging because we need the author's username but We only store the ID of the user account.
     .from post document we have an author id, using this id to look up for matching user document for username, email, gravatar.
     .it means we perform the look up in next step
     .the aggregate operations are not actually manipulating any data in the database.
     .It's simply returning data that we can use however we want.
     .We want to use this data within our controller and passing it to an html template.
 ----------------------------------
-77. Performing a Lookup in mongodb
+77.78. Performing a Lookup in mongodb
 - setup 404 template
 - pulling in the author username, email, gravatar with Post.findSingleById
-- clean up the posts array to return on ly author username and avatar
+- clean up the posts array to return only author username and avatar
 
 - we get avatar by update User Object to have getAvatar argument, so if the getAvatar is true, call getAvatar function.
 
-79. User profile screen
+---------------------------------
+79. User profile screen 02/01/23
+- when user click on profile photo to visit profile.ejs
+
+.create template profile.ejs
+.setup profile related routes
+.create 2 functions in userController: 
+  .ifUserExists: call findByUsername to find request username and handle the return Promise.
+  .profilePostsScreen.
+.create function in User Model: findByUsername.
+  .check the username
+  .perform findOne database operation and handle the return Promise with then and catch.
+
+.pull in real data from profileUser after calling findByUsername if user exist from controller to template profile.ejs.
+
 80. View posts by author
+- load in the post by author in profile.ejs
+
+.starting with function: profilePostsScreen
+  .using Post to call findByAuthorId and handle the return Promise from this function.
+  .create function findByAuthorId in Post Model.
+  .pull in real data for posts in Profile.ejs
+
+
 81. Is the current visitor the owner of the post?
 82. The "Edit" Screen for a post
 83. Updating posts in database
