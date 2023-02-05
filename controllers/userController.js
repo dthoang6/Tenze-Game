@@ -110,8 +110,8 @@ exports.home = function (req, res) {
     //we need to remember the stateless http request runs, our server has no memory to know a login just failed. because we are not always want to show a message.
     //leverage session to know if login fail
     //we want to access that errors data and delete it from the session data base as soon as we've accessed it, which flash package will do it automatically.
-    //Then we can leverage the error message from home-guest
-    res.render("home-guest", { errors: req.flash("errors"), regErrors: req.flash("regErrors") });
+    //Then we can leverage the regError message from home-guest because it is unique for home page.
+    res.render("home-guest", { regErrors: req.flash("regErrors") });
   }
 };
 
@@ -119,7 +119,7 @@ exports.ifUserExists = function (req, res, next) {
   User.findByUsername(req.params.username)
     .then(function (userDocument) {
       /* if our promise resolves with the value of the user document that it found in database that matches the requested username that would get passed into this function as: userDocument */
-      //store userDocument in req object so that we can access it profilePostsScreen function.
+      //store userDocument in req object so that we can access it in below profilePostsScreen function.
       req.profileUser = userDocument;
       next();
     })
@@ -130,7 +130,7 @@ exports.ifUserExists = function (req, res, next) {
 
 exports.profilePostsScreen = function (req, res) {
   //ask our Post model for posts by a certain author id
-  //findByAuthorId will resolve with a value which is an array of posts.
+  //Post.findByAuthorId will resolve with a value which is an array of posts.
   Post.findByAuthorId(req.profileUser._id)
     .then(function (posts) {
       //render the profile template and pass the req object with data when ifuserexist above and array of posts .

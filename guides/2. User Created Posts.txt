@@ -3,10 +3,12 @@
 75. Viewing a Post
 77. Performing a Lookup in mongodb
 79. User profile screen
+
 80. View posts by author
 81. Is the current visitor the owner of the post?
 82. The "Edit" Screen for a post
 83. Updating posts in database
+
 85. Miscellaneous improvements
 86. Markdown: safe user generated html
 88. Let users delete a post
@@ -19,7 +21,8 @@
 - we want to take them to a new url that renders a new html template.
 
 .using html template for create-post.ejs
-.adjust create post button to point towards a specific route /create-post in home-dashboard.ejs
+.adjust create post button to point towards a specific route 
+/create-post in home-dashboard.ejs
 .setup a route for this matching url within our router file and calling function:  postController.viewCreateScreen.
 .setup a postController and start exporting function that the router can call.
 
@@ -30,14 +33,15 @@ exports.viewCreateScreen = function (req, res) {
 .before we move any further, we want to make sure that you can only visit this route if you're logged in.
 .if you're not logged in and you visit this create-post url, you should be redirect to the home page with a red flag error message.
 .It means we restrict a route so that only logged in users can access it by creating a reusable function: 
-userController.mustBeLoggedIn in user controller and call it in router for restrict url.
+userController.mustBeLoggedIn and call it in router for restrict url.
 
 ---
 -create-post.ejs is a new template with hard fake code, so we need to adjust and update the gravatar image, logout button.
 -we need to pass into create-post.ejs a relevant session data to power the unique gravatar.
 
 exports.viewCreateScreen = function (req, res) {
-  res.render("create-post", { username: req.session.user.username, avatar: req.session.user.avatar });
+  res.render("create-post", 
+  { username: req.session.user.username, avatar: req.session.user.avatar });
 };
 
 .when we render a create-post.ejs, we give it a second argument to send it an object which is a data that gets passed into the template.
@@ -140,15 +144,54 @@ Post.prototype.create = function () {};
 80. View posts by author
 - load in the post by author in profile.ejs
 
-.starting with function: profilePostsScreen
+.In userController starting with exports.userController.profilePostsScreen
   .using Post to call findByAuthorId and handle the return Promise from this function.
-  .create function findByAuthorId in Post Model.
+  .create function Post.findByAuthorId in Post Model.
   .pull in real data for posts in Profile.ejs
 
+--------------------------------
+81. Is the current visitor the owner of the post? 02/02/23
+- setup when click profile in header.ejs to redirect to profile.ejs with href="/profile/:<%= user.username %>"
 
-81. Is the current visitor the owner of the post?
-82. The "Edit" Screen for a post
-83. Updating posts in database
+- adjust things so that only the author of post would see the edit and delete button.
+  .app.js: setup a piece of code that will run at the start every request and it will check to see if the current visitor has a user object in session data.
+  .If they do, visitorID = user id.
+  .If they don't, visitorID = 0
+  .pass the req.visitorID input into controller, post, and function.
+
+  .add new property isVisitorOwner into post in reusablePostQuery function
+  .wrap an edit and delete button into an if statement.
+
+- in mongodb, if you include a dollar sign within quotes, it knows that you're talking about that actual field not a literal string of text.
+
+- when owner click edit button, take them to edit screen url.
+
+82. The "Edit" Screen for a post 02/03/23
+- take user to url: href = "post/<%= post.id %>/edit" if author click edit and render a post for user to edit
+
+-bug: (node:12324) Warning: Accessing non-existent property 'route' of module exports inside circular dependency
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+83. Updating posts in database using post request
+- working on what should happen when this edit-post form is submitted
+
+exports.edit = function(req, res) {
+  let post = new Post(req.body, req.visitorId, req.params.id)
+  post.update().then().catch()
+}
+
+Post.update() function to return a Promise
+
+.before we worry about update, we should make sure that the post id is exist or valid id
+
+.who is the author of post using function findSingleById to return the object with property isVisitorOwner, if it is, actually update the post into database and resolve, else reject it.
+
+- We want to potentially leverage flash message in almost every template.
+- Instead of passing errors message using export.home make it available from app.js to all template
+-
+
+
 85. Miscellaneous improvements
 86. Markdown: safe user generated html
 88. Let users delete a post

@@ -202,4 +202,5 @@ User.findByUsername = function (username) {
       });
   });
 };
+
 module.exports = User;

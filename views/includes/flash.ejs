@@ -1,0 +1,13 @@
+<!-- add flash message for fail update post here -->
+<% errors.forEach(function(message) {%>
+  <div class="alert alert-danger text-center">
+    <%= message %>
+  </div>
+  <%}) %>
+
+    <!-- add flash message for success update here -->
+    <% success.forEach(function(message) {%>
+      <div class="alert alert-success text-center">
+        <%= message %>
+      </div>
+      <%}) %>

@@ -18,7 +18,21 @@ app.use(flash()); //add flash feature to our application
 
 //72.  when we say app.use, we are telling express to run this function for every request. It means that we now have access to a user property from within any of our ejs templates.
 app.use(function (req, res, next) {
+  //make all error and success flash messages available from all templates.
+  //so we don't need to manually pass that data into our templates within all of our post controllers.
+  res.locals.errors = req.flash("errors");
+  res.locals.success = req.flash("success");
+
+  //81: make current user id available on the req object. visitorID is a new property we make to hold the user id and add to session.
+  //so now, no matter which control or function we're in, we can access to the visitorId property on the request object.
+  if (req.session.user) {
+    req.visitorId = req.session.user._id;
+  } else {
+    req.visitorId = 0;
+  }
+
   //we are now working with an object that will be available from within our ejs templates so we can add any objects or properties we want onto this locals object.
+  //make user session data available from within view templates
   res.locals.user = req.session.user;
   next(); //and then since we are calling next, express will move on to run the actual relevant functions for a particular route.
 });

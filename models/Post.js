@@ -4,10 +4,11 @@ const User = require("./User");
 //we don't need the entire package here, we just need ObjectId constructor function so we can pass it a simple string of text and it will return that as a special object ID object type.
 const ObjectId = require("mongodb").ObjectId;
 //when our post controller uses this constructor function to create a post object, we are passing along request body, which is going to be the form data that was just submitted.
-let Post = function (data, userId) {
+let Post = function (data, userId, requestedPostId) {
   this.data = data;
   this.errors = []; //when we call validate function, push a message onto this array.
   this.userId = userId;
+  this.requestedPostId = requestedPostId;
 };
 
 Post.prototype.cleanUp = function () {
@@ -63,8 +64,40 @@ Post.prototype.create = function () {
     }
   });
 };
+
+Post.prototype.update = function () {
+  return new Promise(async (resolve, reject) => {
+    //find the relevant post document in db
+    try {
+      let post = await Post.findSingleById(this.requestedPostId, this.userId);
+      if (post.isVisitorOwner) {
+        //actually update the db, can write code here but should write a separate function for organization
+        let status = await this.actuallyUpdate(); //resolve with success or failure
+        resolve(status);
+      } else {
+        reject();
+      }
+    } catch {
+      reject();
+    }
+  });
+};
+
+Post.prototype.actuallyUpdate = function () {
+  return new Promise(async (resolve, reject) => {
+    this.cleanUp();
+    this.validate();
+    if (!this.errors.length) {
+      await postsCollection.findOneAndUpdate({ _id: new ObjectId(this.requestedPostId) }, { $set: { title: this.data.title, body: this.data.body } });
+      resolve("success");
+    } else {
+      resolve("failure");
+    }
+  });
+};
+
 //the findSingleById and findByAuthorId is similar except the match operation post Id vs author id. So we going to create a new function "reusablePostQuery" to void duplication.
-Post.reusablePostQuery = function (uniqueOperations) {
+Post.reusablePostQuery = function (uniqueOperations, visitorId) {
   return new Promise(async function (resolve, reject) {
     //take the only unique parts and then add on the shared parts.
     let aggOperations = uniqueOperations.concat([
@@ -79,6 +112,8 @@ Post.reusablePostQuery = function (uniqueOperations) {
           title: 1,
           body: 1,
           createdDate: 1,
+          //81: makeup this property to have the original author value.
+          authorId: "$author",
           //passed into html template, we would want the author property to be an object with username, avatar.
           author: { $arrayElemAt: ["$authorDocument", 0] }
         }
@@ -87,6 +122,8 @@ Post.reusablePostQuery = function (uniqueOperations) {
     let posts = await postsCollection.aggregate(aggOperations).toArray();
     //clean up author property in each post object
     posts = posts.map(function (post) {
+      //81: add a new property visitorOwner with the value of true or false after comparison
+      post.isVisitorOwner = post.authorId.equals(visitorId);
       //override author object because we do not want password property.
       post.author = {
         username: post.author.username,
@@ -107,7 +144,7 @@ Post.reusablePostQuery = function (uniqueOperations) {
 //We can leverage the Post either as a constructor function from an OOP perspective or we can just simply call a simple function on it by adding a function as a properties to Post object.
 //we add properties 'findSingleById' as a function to a Post constructor function because JS function is an object.
 //looks in the database for a match based on post ID
-Post.findSingleById = function (id) {
+Post.findSingleById = function (id, visitorId) {
   return new Promise(async function (resolve, reject) {
     //make sure the requested id is not an injection attack or the incoming id is not a valid mongo db object id.
     if (typeof id != "string" || !ObjectId.isValid(id)) {
@@ -119,7 +156,7 @@ Post.findSingleById = function (id) {
     //77: performing lookup in mongodb to find post author from user document based on author id of post document.
     //aggregate is great to perform complex or multiple operations by giving an array of database operation as input.
     //it's going to return an array of posts even it is only one item which is a Promise from mongo database
-    let posts = await Post.reusablePostQuery([{ $match: { _id: new ObjectId(id) } }]);
+    let posts = await Post.reusablePostQuery([{ $match: { _id: new ObjectId(id) } }], visitorId);
     //if successful find post
     if (posts.length) {
       console.log(posts[0]);
@@ -142,4 +179,5 @@ Post.findByAuthorId = function (authorId) {
     { $sort: { createdDate: -1 } }
   ]);
 };
+
 module.exports = Post;
