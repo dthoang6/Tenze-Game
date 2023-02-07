@@ -133,18 +133,9 @@ Post.reusablePostQuery = function (uniqueOperations, visitorId) {
       return post;
     });
     resolve(posts);
-    /* //if successful find post
-    if (posts.length) {
-      console.log(posts[0]);
-      resolve(posts[0]); //return the first item in the posts array.
-    } else {
-      reject(posts);
-    } */
   });
 };
-//We can leverage the Post either as a constructor function from an OOP perspective or we can just simply call a simple function on it by adding a function as a properties to Post object.
-//we add properties 'findSingleById' as a function to a Post constructor function because JS function is an object.
-//looks in the database for a match based on post ID
+
 Post.findSingleById = function (id, visitorId) {
   return new Promise(async function (resolve, reject) {
     //make sure the requested id is not an injection attack or the incoming id is not a valid mongo db object id.

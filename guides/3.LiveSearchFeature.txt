@@ -1,0 +1,19 @@
+- when the user click on the search icon, we can have browser side JS, open up a full screen search interface.
+- as the user is typing in what they're searching for without even waiting for them to submit a form.
+- we can begin showing them real live search results with data from our server.
+- all of this can happen on the fly or asynchronous with browser side JS.
+
+89. Staying organized: frontend JS
+90. Showing and hiding search overlay
+91. Responding to key press events
+92. Backend aspect of search
+94. Generating html for search results
+97. Sanitizing user generated html on the front end
+
+--------------------
+89. Staying organized: frontend JS
+90. Showing and hiding search overlay
+91. Responding to key press events
+92. Backend aspect of search
+94. Generating html for search results
+97. Sanitizing user generated html on the front end
