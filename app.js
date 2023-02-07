@@ -2,6 +2,8 @@ const express = require("express");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
+const markdown = require("marked");
+const sanitizeHTML = require("sanitize-html");
 const app = express();
 
 //configure options how we want to use sessions
@@ -18,6 +20,10 @@ app.use(flash()); //add flash feature to our application
 
 //72.  when we say app.use, we are telling express to run this function for every request. It means that we now have access to a user property from within any of our ejs templates.
 app.use(function (req, res, next) {
+  //86: make our markdown function available from within ejs template and use sannitizeHTML
+  res.locals.filterUserHTML = function (content) {
+    return sanitizeHTML(markdown.parse(content), { allowedTags: ["p", "br", "ul", "ol", "li", "strong", "bold", "italic", "h1", "h2", "h3", "h4", "h5", "h6"], allowedAttributes: [] });
+  };
   //make all error and success flash messages available from all templates.
   //so we don't need to manually pass that data into our templates within all of our post controllers.
   res.locals.errors = req.flash("errors");

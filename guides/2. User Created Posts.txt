@@ -169,10 +169,6 @@ Post.prototype.create = function () {};
 82. The "Edit" Screen for a post 02/03/23
 - take user to url: href = "post/<%= post.id %>/edit" if author click edit and render a post for user to edit
 
--bug: (node:12324) Warning: Accessing non-existent property 'route' of module exports inside circular dependency
-(Use `node --trace-warnings ...` to show where the warning was created)
-
-
 83. Updating posts in database using post request
 - working on what should happen when this edit-post form is submitted
 
@@ -192,6 +188,32 @@ Post.update() function to return a Promise
 -
 
 
-85. Miscellaneous improvements
-86. Markdown: safe user generated html
+85. Miscellaneous improvements 02/06/23
+- setup so that if you're not the owner of the post, you can't see the edit form screen.
+- setup feature: within our edit post form screen, towards the top there will be a link that said back to view post or back to permalink for this post. So when you're done editing a post and you want to view it again, you don't need to rely on your web browsers history or web browser back button.
+
+-user Bootstrap library for visual styling in the app.
+
+- set up a protect of edit screen url and the post route where you would actually submit the form.
+- the idea here is that if a visitor doesn't have a user object in session data, meaning they're not logged in.
+
+
+86. Markdown: safe user generated html 02/06/23
+- ejs escaping user generated content for security reasons.
+- Otherwise, we will be 100% vulnerable to a cross-site scripting attack.
+- how can we prevent malicious code while also allowing innocent things like paragraph, bold text? using package marked.
+
+.leverage mark in app.js
+
+- if a user is able to actually execute JS from the front end of your app, It's game over.
+- user can inject js into the frontend to program the web browser to send off an asynchronous http request to the server, on the behalf of other user browser, and allow the malicious user to do whatever they want on your behalf.
+
+- using package sanitize-html to cleanup user post for security reason and support markdown.
+- learn more about markdown cheatsheet githup
+
+
 88. Let users delete a post
+exports.delete
+Post.delete
+
+findSingleById

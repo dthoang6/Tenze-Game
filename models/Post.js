@@ -3,6 +3,7 @@ const postsCollection = require("../db").db().collection("posts");
 const User = require("./User");
 //we don't need the entire package here, we just need ObjectId constructor function so we can pass it a simple string of text and it will return that as a special object ID object type.
 const ObjectId = require("mongodb").ObjectId;
+const sanitizeHTML = require("sanitize-html");
 //when our post controller uses this constructor function to create a post object, we are passing along request body, which is going to be the form data that was just submitted.
 let Post = function (data, userId, requestedPostId) {
   this.data = data;
@@ -23,8 +24,8 @@ Post.prototype.cleanUp = function () {
 
   //get rid of any bogus properties.
   this.data = {
-    title: this.data.title.trim(),
-    body: this.data.body.trim(),
+    title: sanitizeHTML(this.data.title.trim(), { allowedTags: [], allowedAttributes: [] }),
+    body: sanitizeHTML(this.data.body.trim(), { allowedTags: [], allowedAttributes: [] }),
     //this will return a date object representing the current time when this code executes.
     createdDate: new Date(),
     author: ObjectId(this.userId)
@@ -52,8 +53,8 @@ Post.prototype.create = function () {
       //in simple situation like this, use then catch, resolve in then, reject in catch
       postsCollection
         .insertOne(this.data)
-        .then(() => {
-          resolve();
+        .then(info => {
+          resolve(info.insertedId); //resolve with information about the database action that just took place.
         })
         .catch(() => {
           this.errors.push("Please try again later.");
@@ -178,6 +179,27 @@ Post.findByAuthorId = function (authorId) {
     },
     { $sort: { createdDate: -1 } }
   ]);
+};
+
+Post.delete = function (postIdToDelete, currentUserId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      //console.log(postIdToDelete);
+      //console.log(currentUserId);
+      let post = await Post.findSingleById(postIdToDelete, currentUserId);
+      if (post.isVisitorOwner) {
+        //start working with our object that represent the db
+        await postsCollection.deleteOne({ _id: new ObjectId(postIdToDelete) });
+        resolve();
+      } else {
+        //someone is not author try to delete
+        reject();
+      }
+    } catch {
+      //the post id is not valid or the post doesn't exist
+      reject();
+    }
+  });
 };
 
 module.exports = Post;
