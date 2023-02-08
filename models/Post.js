@@ -98,33 +98,37 @@ Post.prototype.actuallyUpdate = function () {
 };
 
 //the findSingleById and findByAuthorId is similar except the match operation post Id vs author id. So we going to create a new function "reusablePostQuery" to void duplication.
-Post.reusablePostQuery = function (uniqueOperations, visitorId) {
+Post.reusablePostQuery = function (uniqueOperations, visitorId, finalOperations = []) {
   return new Promise(async function (resolve, reject) {
     //take the only unique parts and then add on the shared parts.
-    let aggOperations = uniqueOperations.concat([
-      //perform a match by requested id from controller
-      //{ $match: { _id: new ObjectId(id) } },
-      //lookup User document from Post document, and the current post item that we want to perform that match on is the author field which contain the author id.
-      //the lookup operation will add the new property authorDocument which is an "array of 1 object" with the value from user document to the return object.
-      { $lookup: { from: "users", localField: "author", foreignField: "_id", as: "authorDocument" } },
-      //the project allows us to include what fields we want on what we return. We want author property to be an object of user document from authorDocument array of 1 object.
-      {
-        $project: {
-          title: 1,
-          body: 1,
-          createdDate: 1,
-          //81: makeup this property to have the original author value.
-          authorId: "$author",
-          //passed into html template, we would want the author property to be an object with username, avatar.
-          author: { $arrayElemAt: ["$authorDocument", 0] }
+    let aggOperations = uniqueOperations
+      .concat([
+        //perform a match by requested id from controller
+        //{ $match: { _id: new ObjectId(id) } },
+        //lookup User document from Post document, and the current post item that we want to perform that match on is the author field which contain the author id.
+        //the lookup operation will add the new property authorDocument which is an "array of 1 object" with the value from user document to the return object.
+        { $lookup: { from: "users", localField: "author", foreignField: "_id", as: "authorDocument" } },
+        //the project allows us to include what fields we want on what we return. We want author property to be an object of user document from authorDocument array of 1 object.
+        {
+          $project: {
+            title: 1,
+            body: 1,
+            createdDate: 1,
+            //81: makeup this property to have the original author value.
+            authorId: "$author",
+            //passed into html template, we would want the author property to be an object with username, avatar.
+            author: { $arrayElemAt: ["$authorDocument", 0] }
+          }
         }
-      }
-    ]);
+      ])
+      .concat(finalOperations);
     let posts = await postsCollection.aggregate(aggOperations).toArray();
     //clean up author property in each post object
     posts = posts.map(function (post) {
       //81: add a new property visitorOwner with the value of true or false after comparison
       post.isVisitorOwner = post.authorId.equals(visitorId);
+      //we don't want the front end know the author ID because of security issue
+      post.authorId = undefined;
       //override author object because we do not want password property.
       post.author = {
         username: post.author.username,
@@ -188,6 +192,31 @@ Post.delete = function (postIdToDelete, currentUserId) {
       }
     } catch {
       //the post id is not valid or the post doesn't exist
+      reject();
+    }
+  });
+};
+
+Post.search = function (searchTerm) {
+  return new Promise(async (resolve, reject) => {
+    //prevent malicious users from pass an object into db and reduces the chances of a nosq injection attack.
+    if (typeof searchTerm == "string") {
+      //perform db action
+      let posts = await Post.reusablePostQuery(
+        [
+          //we don't want perfect match, just anything contains our search term anywhere in its value.
+          { $match: { $text: { $search: searchTerm } } }
+        ],
+        undefined,
+        [
+          //we want the best match for our search term at the top.
+          //setup indexed db for title and body of post
+          //sort operation will come after project
+          { $sort: { score: { $meta: "textScore" } } }
+        ]
+      );
+      resolve(posts);
+    } else {
       reject();
     }
   });

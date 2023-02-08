@@ -1,7 +1,11 @@
 - when the user click on the search icon, we can have browser side JS, open up a full screen search interface.
 - as the user is typing in what they're searching for without even waiting for them to submit a form.
 - we can begin showing them real live search results with data from our server.
-- all of this can happen on the fly or asynchronous with browser side JS.
+- all of this can happen on the fly or asynchronous with browser side JS (frontend js).
+- this search feature can broken up into two tasks: frontend browser based js and backend server side js.
+
+- first time we write browser side js in public folder
+- we will setup in an organize fashion and then have an automated tool to bundle everything up into one file, into public folder.
 
 89. Staying organized: frontend JS
 90. Showing and hiding search overlay
@@ -11,9 +15,126 @@
 97. Sanitizing user generated html on the front end
 
 --------------------
-89. Staying organized: frontend JS
-90. Showing and hiding search overlay
+89. Staying organized: frontend JS 02/07/2023
+- create folder frontend-js/modules
+- for each new feature we work on, we create a separate file within the modules within the modules folder.
+- frontend-js/modules/search.js
+
+- within each of our module files (search.js) we want to export code that our main.js file can import. 
+- Then we can set up an automation tool that will bundle up everything that main.js import and it will create a main-bundled.js file that will automatically be placed in our public folder.
+
+-frontend-js folder is our source code to stay organized
+-big messy file in the public folder that the browser can actually download from.
+
+-1. install packages we need: webpack webpack-cli @babel/core @babel.preset-env babel-loader
+-2. setup: webpack.config.js, tell webpack where it should export or bundle the files to., we also want to tell webpack any additional features we want to use such as babel.
+
+-3. set thing up so that any time we save a change to one of our front end js files, webpack is watching and it automatically triggers a re-build and re-bundle to the public folder.
+     - in package.json we adjust the script to  
+     "watch": "nodemon db & webpack --watch"
+     - tell nodemon db to ignore our frontend-js folder and public folder because we don't want to restart our node server anytime a new bundled file jump into those folder
+
+        os  "watch": "nodemon db --ignore frontend-js --ignore public/ & webpack --watch"
+
+        window 
+        "watch": "start nodemon db --ignore frontend-js --ignore public/ && start webpack --watch"
+
+-4. npm run watch to generate main-bundled.js file into public folder
+     - within our ejs templates, let tell the browser to download this file.
+     - by using footer.ejs to include a script
+     <script src="/main-bundled.js"></script>
+
+-we need to use package concurrently if we work with shared repository with different developer from different operating system.
+- we use a platform agnostic way of running several tasks at the same time.
+----------------------------
+- understand why the node syntax is different than the frontend-js
+- within our server based code, we're going to continue using require to import in modules
+- within frontend-js we use the latest and greatest js features and syntax with import and export and use babel to transpired for older
+-------------------------------
+
+90. Showing and hiding search overlay: frontend
+- class: a technical name for a blueprint for objects in Java, Python.
+- create a blueprint that can be used to create new objects.
+
+-JavaScript does not actually have classes
+-we just use class syntax for cleaner code but behind the scenes, JS is still using prototypes which is not classical inheritance.
+-in JS, classes is syntactic sugar which is an alternate syntax that might feel cleaner or more familiar to read for many developers.
+-it's just a different way of achieving the same thing by using class syntax so our code is more readable because other languages so support classes
+
+
+- way 1 in nodejs Model: prototype and function
+let Search = function(data) {
+  this.data = data;
+  ...
+}
+Search.prototype.myCoolMethod = function() {
+  ...
+}
+Search.findByUsername = function() {
+  ...
+}
+module.exports = Search;
+
+- way 2 in frontend-js: using class syntax similar to Java, or Python to achieving the same thing above. Behind the scene, JS will convert this into using Prototype based approach.
+
+export default class Search {
+  constructor(data) {
+    this.data = data;
+  }
+  myCoolMethod() {...}
+}
+------------
+-goal:
+- 1. when user click search, your cursor would automatically placed into the search field of overlay html template and then you can type what you're looking for.
+-2. then a little spinning progress load or icon could appear here while the browser sends off a request to the server.
+-3. the server talks to the database and then responds with raw JSON data for the appropriate results.
+-4. then our front end passes that JSON and outputs HTML template.
+--------------
+goal 1:
+-setup overlay html in injectHTML method with back tick
+-inject html
+-set thing up so that our openOverlay method add the search-overlay--visible class to the div when user click the search icon.
+-set to remove visible class if user click X closed icon using class and method and event.
+
 91. Responding to key press events
+-working on focus cursor
+-making a quick fix for browsers that are not logged in and therefore they don't see a search icon
+-setup at loader icon
+
+-working on the behavior when user begin typing into the search field
+-when do we want to send off an asynchronous request to our server to find posts?
+
+- instead of sending off a new search request after every keystroke, we wait 500ms after they've stopped typing in new characters. So that we don't flood our server with unnecessary requests.
+
+-send off asynchronous request to our server using axios library with sendRequest method in search.js
+
+
 92. Backend aspect of search
-94. Generating html for search results
+
+-setup route for /search in router.js and call postController.search
+-create search function in postController
+-create search function in Post
+
+-set thing up in mongodb website so that the title, and body fields of a post also indexed so the match operation is less expensive and quick.
+
+94. Generating html for search results 02/08/23
+- using the resulting raw data (response json data from server) to generate the appropriate HTML to actually show results visually.
+- start by adjust our sendRequest method so that once it receives its response from the server, it can call a separate method that's responsible for generating and rendering HTML.
+- create renderResultHTML method with html template to add it to the template
+- using back tick and ${} for dynamic html generate with raw data
+- we are not allowed to have an if statement within a template literal but we can use the ternary operator.
+
 97. Sanitizing user generated html on the front end
+- Quick Security node
+- Cross site scripting attacks. 
+- we set things up so that we are rendering user generated content.
+- we generated this HTML ourselves using template literals, we did not have a template ejs to escaping everything for us.
+
+- we are not actually open to cross site scripting attacks because our Post model enforces its own HTML sanitization before accepting data into the database.
+- however, whenever you're generating HTML from user generated content, you want to assume the worst on the frontend.
+- Its a best practice to assume that somehow your backend was compromised and there is malicious code waiting for us in the database.
+- this way, even in a worst case scenario, our front end still does not actually execute malicious JS.
+
+- the idea is that: backend is sanitize the input, and the front end always prepare for the worst. So if for some reason our back end wasn't doing a great job with security, at least we're not vulnerable to front end JS attacks.
+
+- In the case like this, We need to sanitize html on the browser or frontend side by using package DOM Purify, last line of defense, DOM Purifies still protected us from any actual cross site scripting attacks taking place.

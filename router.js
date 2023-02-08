@@ -28,4 +28,6 @@ router.get("/post/:id/edit", userController.mustBeLoggedIn, postController.viewE
 router.post("/post/:id/edit", userController.mustBeLoggedIn, postController.edit);
 router.post("/post/:id/delete", userController.mustBeLoggedIn, postController.delete);
 
+router.post("/search", postController.search);
+
 module.exports = router; //this is what we make available to any file that require in this file.

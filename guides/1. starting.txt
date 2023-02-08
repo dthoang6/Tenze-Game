@@ -190,7 +190,7 @@ eatBreakfast()
 
 method 2.2: alternative way of working with promises
 - instead of using then().catch()
-- we use async await, try catch for error handling
+- we use async await, try catch, if else statement for resolve or reject error handling
 
 - with promises we can include the word await before them and then js will indeed let this asynchronous operational promise resolve how long that takes before moving on to the next operation.
 - but you can only use await if you are within an asynchronous function.
