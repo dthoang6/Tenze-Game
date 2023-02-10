@@ -1,0 +1,65 @@
+98. Letting Users Follow Each other
+99. Saving a "Follow" Action into Our db
+100. Stop Following a User
+102. Profile Followers Screen
+104. Following Screen
+106. Homepage Feed
+
+--------
+
+98. Letting Users Follow Each other
+- starting when user click the follow button of user they want to follow
+- set up route
+- set up follow controller
+
+99. Saving a "Follow" Action into Our db
+- create Follow Model
+- create function in Model: cleanup, validate, create
+
+100. Stop Following a User
+- create a function or an area that can run for all three of these different route: Posts | Followers | Following of Profile.ejs
+
+- userController.sharedProfileData: we can reuse this function for 3 different routes by calling it in profile related routes
+
+- when a user visit a profile of any other user, we want to know if the current visitor follow the account or not.
+
+- create function in Model: Follow.isVisitorFollowing to return a true or false for property isVisitorFollowing for share code
+
+- userController.sharedProfileData, userController.profilePostsScreen
+
+
+102. Profile Followers Screen
+- create a views/includes/profileShared.ejs for profile.ejs, follower, Following
+- set up a routes fo that we can click on those follower and following in User Profile.
+
+- create userController.profileFollowersScreen function
+- create Follow.getFollowersById function
+
+
+104. Following Screen
+- same procedure as Profile Followers Screen
+- when user click the Following tap, send async get request to "/profile/:username/followings"
+- handle get request in router.get("", ...)
+
+- create userController.profileFollowingsScreen
+- create Follow.getFollowingsById
+
+- create profile-Following.ejs
+-----------
+- adjust userController.sharedProfileData to call Promise function to resolve followerCount, postCount, followingCount.
+- create Promise function to resolve data
+
+- adjust profilePostsScreen, profileFollowersScreen, profileFollowingsScreen to render the data for count by adding
+counts: { postCount: req.postCount, followerCount: req.followerCount, followingCount: req.followingCount }
+
+- adjust ejs template for dynamic count
+
+106. Homepage Feed
+- for users that are logged in, the home page should show the latest posts from the people they follow.
+- if a user has not followed anyone or if the people they follow have not created any posts yet, then we would expect to see this message that "your feed is empty"
+
+- our goal is to swap out the hard code html and the home page to life with dynamic login.
+
+- userController.home to call Post.getFeed and pass the return posts array of user's post follow
+- pass this data into template home-dashboard.ejs to show it in frontend
+- Post.getFeed

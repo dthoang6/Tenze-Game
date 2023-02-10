@@ -1,5 +1,7 @@
 //accessing to database
 const postsCollection = require("../db").db().collection("posts");
+const followsCollection = require("../db").db().collection("follows");
+
 const User = require("./User");
 //we don't need the entire package here, we just need ObjectId constructor function so we can pass it a simple string of text and it will return that as a special object ID object type.
 const ObjectId = require("mongodb").ObjectId;
@@ -155,7 +157,7 @@ Post.findSingleById = function (id, visitorId) {
     let posts = await Post.reusablePostQuery([{ $match: { _id: new ObjectId(id) } }], visitorId);
     //if successful find post
     if (posts.length) {
-      console.log(posts[0]);
+      //console.log(posts[0]);
       resolve(posts[0]); //return the first item in the posts array.
     } else {
       reject(posts);
@@ -220,6 +222,28 @@ Post.search = function (searchTerm) {
       reject();
     }
   });
+};
+
+Post.countPostsByAuthor = function (id) {
+  return new Promise(async (resolve, reject) => {
+    let postCount = await postsCollection.countDocuments({ author: id });
+    resolve(postCount);
+  });
+};
+
+Post.getFeed = async function (id) {
+  //create an array of user ids that the current user follows
+  let followedUsers = await followsCollection.find({ authorId: new ObjectId(id) }).toArray();
+  //create a new array only store followedId of user I follow
+  followedUsers = followedUsers.map(function (followDoc) {
+    return followDoc.followedId;
+  });
+  //look for posts where the author is in the above array of followed users
+  return Post.reusablePostQuery([
+    //find any post document where the author value is a value that is in our array of followedUsers.
+    { $match: { author: { $in: followedUsers } } },
+    { $sort: { createdDate: -1 } }
+  ]);
 };
 
 module.exports = Post;

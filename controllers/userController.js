@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
+const Follow = require("../models/Follow");
 //each of controllers will contain relevant functions for that feature.
 
 //when the node environment sees this code, it's going to make sure that a property named login is added to what's getting exported from this file.
@@ -99,13 +100,17 @@ exports.register = function (req, res) {
     });
 };
 
-exports.home = function (req, res) {
+exports.home = async function (req, res) {
   //step14: how do we really log a user in using session data?
   if (req.session.user) {
     //step 15: set things up so that if you successfully register, the system automatically logs you in new UI
     //send back the template you want to render, and include any data, message that you want to pass into this template.
     //then we will have a property username available to us from within home-dashboard ejs
-    res.render("home-dashboard");
+
+    //106: for homepage feed, fetch feed of posts for current user
+    let posts = await Post.getFeed(req.session.user._id);
+
+    res.render("home-dashboard", { posts: posts });
   } else {
     //we need to remember the stateless http request runs, our server has no memory to know a login just failed. because we are not always want to show a message.
     //leverage session to know if login fail
@@ -135,12 +140,89 @@ exports.profilePostsScreen = function (req, res) {
     .then(function (posts) {
       //render the profile template and pass the req object with data when ifuserexist above and array of posts .
       res.render("profile", {
+        currentPage: "posts",
         posts: posts,
         profileUsername: req.profileUser.username,
-        profileAvatar: req.profileUser.avatar
+        profileAvatar: req.profileUser.avatar,
+        isFollowing: req.isFollowing,
+        isVisitorsProfile: req.isVisitorsProfile,
+        counts: { postCount: req.postCount, followerCount: req.followerCount, followingCount: req.followingCount }
       });
     })
     .catch(function () {
       reject("404");
     });
+};
+
+exports.sharedProfileData = async function (req, res, next) {
+  let isVisitorsProfile = false;
+  let isFollowing = false;
+  if (req.session.user) {
+    //setup to hide follow button if you are on your profile
+    isVisitorsProfile = req.profileUser._id.equals(req.session.user._id);
+    //if the current visitor logged in, ask our follow Model if current visitor follow the profile user or not: true or false?
+    isFollowing = await Follow.isVisitorFollowing(req.profileUser._id, req.visitorId);
+    //console.log("after calling isVisitorFollowing: " + isFollowing);
+  }
+  //storing the value into the req object
+  //then pass it to profilePostScreen to render it to profile.ejs
+  //we can use this true or false value to show either the follow or the stop follow button
+  req.isFollowing = isFollowing;
+  req.isVisitorsProfile = isVisitorsProfile;
+
+  //105: retrieve post, follower, and following counts
+  let postCountPromise = Post.countPostsByAuthor(req.profileUser._id);
+  let followerCountPromise = Follow.countFollowersById(req.profileUser._id);
+  let followingCountPromise = Follow.countFollowingById(req.profileUser._id);
+
+  //run the Promise for all, and using array destructuring to access the array
+  let [postCount, followerCount, followingCount] = await Promise.all([postCountPromise, followerCountPromise, followingCountPromise]);
+
+  req.postCount = postCount;
+  req.followerCount = followerCount;
+  req.followingCount = followingCount;
+
+  next();
+};
+
+exports.profileFollowersScreen = async function (req, res) {
+  try {
+    //call the function to return an array of users that are following the current users
+    //then render to our template
+    let followers = await Follow.getFollowersById(req.profileUser._id);
+    //console.log(followers);
+
+    res.render("profile-followers", {
+      currentPage: "followers",
+      followers: followers,
+      profileUsername: req.profileUser.username,
+      profileAvatar: req.profileUser.avatar,
+      isFollowing: req.isFollowing,
+      isVisitorsProfile: req.isVisitorsProfile,
+      counts: { postCount: req.postCount, followerCount: req.followerCount, followingCount: req.followingCount }
+    });
+  } catch {
+    res.render("404");
+  }
+};
+
+exports.profileFollowingsScreen = async function (req, res) {
+  try {
+    //call the function to return an array of users that are following the current users
+    //then render to our template
+    let followings = await Follow.getFollowingsById(req.profileUser._id);
+    //console.log(followers);
+
+    res.render("profile-following", {
+      currentPage: "followings",
+      followings: followings,
+      profileUsername: req.profileUser.username,
+      profileAvatar: req.profileUser.avatar,
+      isFollowing: req.isFollowing,
+      isVisitorsProfile: req.isVisitorsProfile,
+      counts: { postCount: req.postCount, followerCount: req.followerCount, followingCount: req.followingCount }
+    });
+  } catch {
+    res.render("404");
+  }
 };
