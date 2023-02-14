@@ -140,6 +140,7 @@ exports.profilePostsScreen = function (req, res) {
     .then(function (posts) {
       //render the profile template and pass the req object with data when ifuserexist above and array of posts .
       res.render("profile", {
+        title: `Profile for ${req.profileUser.username}`,
         currentPage: "posts",
         posts: posts,
         profileUsername: req.profileUser.username,

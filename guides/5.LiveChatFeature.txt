@@ -1,0 +1,83 @@
+107. Beginning Chat Feature
+108. Socket.io
+110. Finishing Chat
+112. Dynamic Title Tag 
+
+-------
+107. Beginning Chat Feature
+- when a logged in user clicks on the chat icon up in the header bar, I would want to display a chat box down in the bottom right corner of the screen.
+- we break this chat feature in 2 parts:
+- Part 1: user experience and visual design: respond to the click event of this icon, and then show the html and css that will build the chat box interface.
+- Part 2: Socket.io, a technology that allow for 2 way communication of data in real time.
+----------
+
+- starting part 1:
+- in footer.ejs, add a code to check if the user login or not at the end.
+- create a browser based code for this chat feature: frontend-js/modules/chat.js
+
+- use browser based code chat.js to add html into div in footer.ejs
+- add a class to the div to show Chat window
+- remove a class to the div to close Chat window
+
+- set things up so that the first time the user opens the chat, a special function runs that can open a connection to the server.
+- then if the user just started spamming, closing and opening the chat, we wouldn't want to create a new connection.
+
+---------------------------
+108. Socket.io
+- focus on sending and receiving data
+- what happen if we actually type a message into the text field within the chat box, press enter to try to submit the message?
+- we want to send this data, their message to the server on the fly or asynchronous and we don't want to reload the page.
+
+  - use axios package and send off an async JS request to the server.
+  - and the server would need to send this message to any and all the users who also have the chat feature open currently.
+
+- Web browser is not always listening for incoming data from the server.
+- traditional, the browser only listens for data from the server
+immediately after it sends a request and then expects to hear a response from the server.
+- as soon as, that request response lifecycle is over, the browser is not listening any longer.
+
+- Instead of using a traditional HTTP request, we open a socket connection between browser and server.
+- Once we've established a socket connection, both the server and the browser will be listening for data from one another.
+
+- use package socket.io
+- start with app.js 
+- footer.ejs: <script src="/socket.io/socket.io.js"></script>
+make sure that our frontend is loading socket io JavaScript so that it can open the connection to connect to the server
+
+1.when user click chat icon, show chat, and open the connection: socket = io()
+2.when user submit message, emit data to server: socket.emit(a, b)
+3.handle connection and message from server then emit data to browser
+io.on() {
+  socket.on(a,function(data) {
+    io.emit()
+  })
+}
+4.tell browser what to do when server emit data back.
+-----------------
+- write the front end or user experience JS to intercept the event of a user typing into this field and then pressing enter.
+
+110. Finishing Chat: 02/13/2023
+- show the message from the server to the chat log area.
+
+- html template to insert message form server to chat log including the avatar, username
+- set up so that server will not waste resources to send your own message back to you.
+- set up so that when you send a message to the server, the browser just grabs whatever text was in that field and adds it into the chat log.
+
+- set up when there is enough message, scroll down to its bottom so that the newest message can seen.
+
+- security vulnerability
+- to protect our users from malicious users in the chat like this, let me show you what I would do.
+- let's begin on the server side and let's sanitize any incoming messages before we broadcast them out to any and all other connected users.
+- let's assume the worst, add the last line of defense at the browser side: using DOMpurify for client side.
+
+
+112. Dynamic Title Tag for posts: good for SEO
+
+- in header.ejs
+  <title>
+    <%= typeof(title)=="undefined" ? 'OurApp' : `${title} | OurApp` %>
+  </title>
+- when i render data to the template, include custom title.
+- example:    title: `Profile for ${req.profileUser.username}`,
+
+

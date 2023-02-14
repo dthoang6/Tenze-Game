@@ -54,14 +54,36 @@ app.set("view engine", "ejs"); //b = tell express which template engine we are u
 
 app.use("/", router);
 
-//a=which url to use this router for, b = the router that you want to use. Using Router to keep our main file clean and organized.
-/* app.get("/", function (req, res) {
-  //res.send("Welcome to our complex app.");
-  res.render("home-guest");
-}); */
+//want the server to power socket connections.
+//create a server that is going to use our express app as its handler
+const server = require("http").createServer(app);
 
-/* app.listen(3000);
- */
+const io = require("socket.io")(server);
 
-module.exports = app;
+//making our express session data available from within the context of socket IO.
+io.use(function (socket, next) {
+  sessionOptions(socket.request, socket.request.res, next);
+});
+
+//now, instead of telling app to listen, tell server to listen. So it's going to power both express app and socket connection.
+
+//2. when a web browser opens a socket connection with our server,
+io.on("connection", function (socket) {
+  //the parameter "socket" represent the connection between server and browser
+  //a is the event type, this case is chatMessageFromBrowser
+  //we are free to create as many different types of events as we want such as exit, run, jump, walk for a game in the browser.
+  //when the server detects an event of this type, then we run a function to response to the data the browser send.
+  if (socket.request.session.user) {
+    let user = socket.request.session.user;
+    //send to the current user when they open the chat
+    socket.emit("welcome", { username: user.username, avatar: user.avatar });
+
+    socket.on("chatMessageFromBrowser", function (data) {
+      //send the message to all user except the author
+      socket.broadcast.emit("chatMessageFromServer", { message: sanitizeHTML(data.message, { allowedTags: [], allowedAttributes: [] }), username: user.username, avatar: user.avatar });
+    });
+  }
+});
+
+module.exports = server;
 //we are creating an express application under this variable app. But instead of telling it to actually start listening, we're just exporting it from this file.
