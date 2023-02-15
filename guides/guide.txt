@@ -10,6 +10,7 @@
 --------------------------
 - we always need to validate data on the server side because a malicious user could disable client side or front end validation
 - we add live form validation in the client side to enhance the user experience.
+
 --------------------------
 7. What is CSRF? 1h
 - security vulnerability relate to Cookie security
@@ -41,7 +42,59 @@
 
 8. Create an API: 1h
 - Setting up the skeleton for an API
-- JSON Web Tokens
+  - What is API: if we add API to our application, the API will allow other application to communicate with our application 
+  - An API will make our app's data and functionality accessible through programmatic requests instead of being tightly coupled to a specific environment (currently the web browser)
+
+  - We've been working on our web application, but what if we want to create an iOS version, or an Android version, Windows version, Mac or Linux version?
+  - The point is, what if we want to create a version of our application where the user interface is not powered by an HTML rendering engine?
+
+  - We would want our express server that we've been working on to be able to expose the data and functionality of our app in a way that is decoupled from HTML and cookies and web browser environment.
+  - We want to expose our data and functionality in a very open ended and flexible and just sort of raw data fashion.
+  -----
+
+- create an API let a user login, create a new post, and delete existing posts. user will be able to perform those actions from anywhere, any application environment that can send an HTTP request.
+- How we can test our API by send a request to our app API? Postman
+- Postman makes it very easy to send different types of requests instead of having to write front end JavaScript or program the web browser to send a certain type of request.
+
+- in order to login, you need to send a post request with username and password (JSON data) using Postman
+- create a separate router just for api in app.js
+- setup the postman, router-api.js
+-------------------------
+
+- JSON Web Tokens:
+    - use package for nodejs environment: jsonwebtoken
+    - jsontoken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2M2QxYmNjYzY4YjUxNzBkZGU0MTIwYmYiLCJpYXQiOjE2NzY0ODU5NDcsImV4cCI6MTY3NzA5MDc0N30.1HuJ_Yl1ISYDn2BhrlHPP0YC_EO6B5zWZ17GQymNNpU
+
+- how can we trust the tokens the user send to us: because when we send the data in the token, we are signing it or giving it a signature with our unique secret phrase.
+- then the JWT verify will determine fake or manipulated tokens by check to see if the signature is a match or not.
+
+- why are JSON Web token is so popular? because they allow for stateless authentication, meaning we don't need to keep track of session data on our server. because the tokens contain all of the data we need to authenticate and identify requests.
+
+- simplify and speed up our server.
+-------------------------------
+
 - Finishing API and Understanding CORS
+  - setup the api route for deleting one of existing posts
+  - set up the api route where you can receive an array of posts for a particular author.
+  - how to open up that route so that other domains can easily connect to it.
+  ---
+  CORS: Cross origin resource sharing, so web browser will not send off asynchronous requests to other domain unless that other domain explicitly says that its oke to do so.
+
+  - using codepen to send axios request to our server to fetch posts by certain author to understand CORS.
+
+  axios.get("http://localhost:3000/api/postsByAuthor/tom").then(response => {
+
+  }).catch(e => {})
+
+  - how to make it available:
+    - install package cors
+
+  -create a documentation for api
+    - list different routes and what expect in terms of properties and how our token system works.
+  
+  - the idea is that, any developer that reads our api documentation, as long as they're working in an environment that can send an HTTP request and every modern environment (ios, android, windows, mac) can do that.
+  - then the developer are free to use our API however they see fit.
 
 9. Deploying complex app to render: 1h
+- pushing our app to the web
+- sending email from our app

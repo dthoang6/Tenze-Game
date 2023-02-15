@@ -7,6 +7,12 @@ const csrf = require("csurf");
 const sanitizeHTML = require("sanitize-html");
 const app = express();
 
+//accepting the two most common ways of submitting data on the web.
+app.use(express.urlencoded({ extended: false })); //1. traditional html form submit, tell express to add the user submitted data onto our request object. Then we can access it from request body.
+app.use(express.json()); //2. sending JSON data
+
+app.use("/api", require("./router-api"));
+
 //configure options how we want to use sessions
 let sessionOptions = session({
   secret: "JavaScript is so cool",
@@ -45,9 +51,6 @@ app.use(function (req, res, next) {
 });
 
 const router = require("./router"); //require function executes said file immediately, and returns whatever that file exports to variable router to use whenever or whatever we see fit.
-//accepting the two most common ways of submitting data on the web.
-app.use(express.urlencoded({ extended: false })); //1. traditional html form submit, tell express to add the user submitted data onto our request object. Then we can access it from request body.
-app.use(express.json()); //2. sending JSON data
 
 app.use(express.static("public")); //public folder: css, js browser files that we want to be accessible by anyone who views our app.
 app.set("views", "views"); //a = express option, b is the second views is the folder name, it can be different.

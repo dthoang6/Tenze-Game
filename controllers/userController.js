@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 const Follow = require("../models/Follow");
+const jwt = require("jsonwebtoken");
 //each of controllers will contain relevant functions for that feature.
 
 //when the node environment sees this code, it's going to make sure that a property named login is added to what's getting exported from this file.
@@ -79,6 +80,35 @@ exports.login = function (req, res) {
         res.redirect("/");
       });
     });
+};
+//apiLogin: already has the login, we need to decouple this from the web browser, no session, no redirect, no flash message, and using jsonwebtoken to send response as a token.
+exports.apiLogin = function (req, res) {
+  let user = new User(req.body);
+  user
+    .login()
+    .then(function (result) {
+      res.json(jwt.sign({ _id: user.data._id }, process.env.JWTSECRET, { expiresIn: "7d" }));
+    })
+    .catch(function (e) {
+      res.json("sorry");
+    });
+};
+exports.apiMustBeLoggedIn = function (req, res, next) {
+  try {
+    req.apiUser = jwt.verify(req.body.token, process.env.JWTSECRET);
+    next();
+  } catch {
+    res.json("Sorry, you must provide a valid token.");
+  }
+};
+exports.apiGetPostsByUsername = async function (req, res) {
+  try {
+    let authorDoc = await User.findByUsername(req.params.username);
+    let posts = await Post.findByAuthorId(authorDoc._id);
+    res.json(posts);
+  } catch {
+    res.json("Sorry, invalid user requested.");
+  }
 };
 
 exports.logout = function (req, res) {
