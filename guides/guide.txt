@@ -5,8 +5,43 @@
 4. Letting Users follow each other: 2h
 
 5. Live Chat - socket.io: 2h
-6. Live validation for Registration Form: 2h
 
+6. Live validation for Registration Form: 2h
+--------------------------
+- we always need to validate data on the server side because a malicious user could disable client side or front end validation
+- we add live form validation in the client side to enhance the user experience.
+--------------------------
 7. What is CSRF? 1h
+- security vulnerability relate to Cookie security
+- CSRF attack: Cross site request forgery
+    - imagine I receive an email from someone who's targeting users of our application.
+    - imagine one of your innocent users clicking on to a page that they should not have clicked to
+
+- how and why in the world is this super simple attack actually working with just basic form submit?
+    - the answer is the cookie
+- How to prevent CSRF attack
+    - what this attack can do: send off traditional html form, submit the form request to the url that transfer the money.
+
+    - what this attack cannot do: this type of attack cannot see or access the application itself
+    - web browsers do protect you on a tab to tab basis.
+    - there is no way for the malicious page to read the post html template.
+    - the malicious code is just blindly sending off post requests.
+
+    - To protect ourselves: when the server sends this HTML template to the browser, we could just send along a random string of characters and then set things up so that when this form is submitted, it must provide a random string of characters
+    - If your don't provide that random string of characters, we will reject this request.
+- implement
+  - install package csurf
+  - leverage the package in app.js
+  - include this into ejs template, 
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  - include _csrf value into axios request of registrationForm.js and search.js
+  this._csrf = document.querySelector("[name='_csrf']").value;
+
+
+
 8. Create an API: 1h
+- Setting up the skeleton for an API
+- JSON Web Tokens
+- Finishing API and Understanding CORS
+
 9. Deploying complex app to render: 1h

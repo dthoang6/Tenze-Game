@@ -3,6 +3,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const markdown = require("marked");
+const csrf = require("csurf");
 const sanitizeHTML = require("sanitize-html");
 const app = express();
 
@@ -52,8 +53,27 @@ app.use(express.static("public")); //public folder: css, js browser files that w
 app.set("views", "views"); //a = express option, b is the second views is the folder name, it can be different.
 app.set("view engine", "ejs"); //b = tell express which template engine we are using: EJS/Pug/Handlebars
 
+//set things up so that any of our requests that modify state will need to have a valid and matching csrf token
+app.use(csrf());
+//make the RF token available from within our html templates.
+app.use(function (req, res, next) {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 app.use("/", router);
 
+//handle the CSRF attack
+app.use(function (err, req, res, next) {
+  if (err) {
+    if (err.code == "EBADCSRFTOKEN") {
+      req.flash("errors", "Cross site request forgery detected.");
+      req.session.save(() => res.redirect("/"));
+    } else {
+      res.render("404");
+    }
+  }
+});
 //want the server to power socket connections.
 //create a server that is going to use our express app as its handler
 const server = require("http").createServer(app);

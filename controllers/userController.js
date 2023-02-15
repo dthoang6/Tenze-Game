@@ -5,6 +5,21 @@ const Follow = require("../models/Follow");
 
 //when the node environment sees this code, it's going to make sure that a property named login is added to what's getting exported from this file.
 
+exports.doesUsernameExist = function (req, res) {
+  User.findByUsername(req.body.username)
+    .then(function () {
+      res.json(true);
+    })
+    .catch(function () {
+      res.json(false);
+    });
+};
+
+exports.doesEmailExist = async function (req, res) {
+  let emailBool = await User.doesEmailExist(req.body.email);
+  res.json(emailBool);
+};
+
 exports.mustBeLoggedIn = function (req, res, next) {
   if (req.session.user) {
     next(); //if a user logged in, we call next() to tell express to call the next function for this route.
